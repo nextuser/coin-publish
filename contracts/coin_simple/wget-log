@@ -1,0 +1,10 @@
+--2025-02-13 13:10:01--  https://gh.api.99988866.xyz/https://github.com/MystenLabs/sui/releases/download/testnet-v1.42.2/sui-testnet-v1.42.2-ubuntu-x86_64.tgz
+Resolving gh.api.99988866.xyz (gh.api.99988866.xyz)... 172.67.207.66, 104.21.66.207, 2606:4700:3030::ac43:cf42, ...
+Connecting to gh.api.99988866.xyz (gh.api.99988866.xyz)|172.67.207.66|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 771582777 (736M) [application/octet-stream]
+Saving to: ‘/tmp/sui-testnet-v1.42.2.tgz’
+
+
+2025-02-13 13:11:31 (8.44 MB/s) - ‘/tmp/sui-testnet-v1.42.2.tgz’ saved [771582777/771582777]
+

@@ -114,7 +114,7 @@ async function publishCoin(params : PublishCoinParams){
     updated = template.update_constants(
         updated,
         bcs.u64().serialize(params.initialSupply).toBytes(), // new value
-        bcs.u64().serialize('1000000000').toBytes(), // current value
+        bcs.u64().serialize('1000000').toBytes(), // current value
         'U64', // type of the constant
     );
     let signer = getLocalSigner();
@@ -163,8 +163,28 @@ async function publishCoin(params : PublishCoinParams){
         ids: createdObjectIds,
         options: { showContent: true, showType: true, showOwner: true },
     });
+
+    // let new_package = "";
+    // if(createdObjects.error){
+    //     console.log("error:",createdObjects.er);
+    // }
+
+    // createdObjects.for
+    // )
+    // createdObjects.data.forEach((item) => {
+    //     if(item.type == "published"){
+    //         new_package = item.packageId
+    //     }
+    // })
     if(result.objectChanges){
-        console.log("objects:",result.objectChanges);
+        result.objectChanges.forEach((item) =>{
+            if(item.type == 'published'){
+                console.log('package id:',item.packageId);
+            } else if (item.type == "created"){
+                console.log("id, type,owner",item.objectId, item.objectType,item.owner)
+            }
+        })
+
     }
 }
 
