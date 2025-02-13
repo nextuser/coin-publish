@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "es2020", // 使用较新的 ECMAScript 版本以支持 WebAssembly
+    "module": "esnext", // 使用 ES 模块
+    "moduleResolution": "node", // 使用 Node.js 模块解析
+    "lib": ["dom", "esnext", "webworker"], // 包含 WebAssembly 相关类型
+    "allowJs": true, // 允许导入 JavaScript 文件
+    "esModuleInterop": true, // 支持 CommonJS 和 ES 模块互操作
+    "strict": true, // 启用严格类型检查
+    "resolveJsonModule": true, // 允许导入 JSON 文件
+    "isolatedModules": true, // 确保每个文件都是独立的模块
+    "noEmit": true // 不生成输出文件（如果使用 Webpack）
+  },
+  "include": ["src/**/*"], // 包含的源文件路径
+  "exclude": ["node_modules"] // 排除的路径
+}
