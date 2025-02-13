@@ -12,6 +12,7 @@ import { Transaction } from '@mysten/sui/transactions';
 import {getSigner,getLocalSigner} from './sui/local_key';
 import { SuiClient,getFullnodeUrl } from '@mysten/sui/client';
 import { test_env as env } from "./sui/config";
+import { threadId } from 'worker_threads';
 
 
 
@@ -136,14 +137,14 @@ async function publishCoin(params : PublishCoinParams){
         options: {
             showEffects: true,
             showObjectChanges:true,
-
+            showEvents:true
         },
         requestType: 'WaitForLocalExecution',
     });
 
     await suiClient.waitForTransaction({ digest: result.digest });
 
-    console.log('Result: ', JSON.stringify(result, null, 2));
+    ///console.log('Result: ', JSON.stringify(result, null, 2));
 
     if (result.effects?.status?.status !== 'success') {
         console.log('\n\nPublishing failed');
@@ -181,10 +182,19 @@ async function publishCoin(params : PublishCoinParams){
             if(item.type == 'published'){
                 console.log('package id:',item.packageId);
             } else if (item.type == "created"){
-                console.log("id, type,owner",item.objectId, item.objectType,item.owner)
+                console.log("created objects:id, type,owner",item.objectId, item.objectType,item.owner)
             }
         })
 
+    }
+
+    let eventsDigest = result.effects.eventsDigest;
+    if(eventsDigest){
+        suiClient.queryEvents({query:{Transaction : result.digest }}).then((events)=>{
+            events.data.forEach((item)=>{
+                console.log("event:",item);    
+            });
+        })
     }
 }
 
