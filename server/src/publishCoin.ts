@@ -44,7 +44,7 @@ async function publishCoin(params : PublishCoinParams){
     //console.log(version);
     console.log("publish coin");
 
-    let [bytecode,deps] = coinTemplateBytes();
+    let [bytecode,deps] = coinTemplateBytes2();
     console.log("bytecode length :",bytecode.length);
 
     
