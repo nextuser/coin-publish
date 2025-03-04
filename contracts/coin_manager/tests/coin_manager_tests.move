@@ -1,18 +1,18 @@
-/*
+
 #[test_only]
 module coin_manager::coin_manager_tests;
 // uncomment this line to import the module
 // use coin_manager::coin_manager;
+use coin_manager::coin_manager::pow;
 
-const ENotImplemented: u64 = 0;
 
 #[test]
-fun test_coin_manager() {
-    // pass
+fun test_pow() {
+    assert!(pow(10,0)==1);
+    assert!(pow(10,2)==100);
+    assert!(pow(10,3)== 1000);
+    assert!(pow(10,4)== 10_000);
+    assert!(pow(10,5)== 100_000);
+    assert!(pow(10,6)== 1000_000);
 }
 
-#[test, expected_failure(abort_code = ::coin_manager::coin_manager_tests::ENotImplemented)]
-fun test_coin_manager_fail() {
-    abort ENotImplemented
-}
-*/

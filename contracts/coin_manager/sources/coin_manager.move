@@ -7,6 +7,7 @@ use sui::sui::SUI;
 use std::string;
 use std::ascii;
 use sui::event::emit;
+use coin_manager::logger::log;
 
 const INIT_SUPPLY: u64 = 1000_000_000;
 public struct CoinCreatedEvent has copy,drop{
@@ -39,6 +40,49 @@ public fun manager_owner(m : &Manager) : address{
     m.owner
 }
 
+public fun pow(base : u64, exponent : u8 ) : u64{
+    let mut i = 0;
+    let mut ret = 1;
+    loop {
+        if(i >= exponent){
+            break
+        };
+        ret = ret * base;
+        i = i + 1;        
+    };
+    ret
+}
+
+const ConvertDivide : u8 = 1;
+const ConvertMultiply : u8 = 2;
+const ConvertEqual : u8 = 0;
+
+public struct Convert has store{
+    ctype : u8,
+    times : u64
+}
+
+fun get_convert(from : u8, to :u8) : Convert {
+    if(from == to ){
+        return Convert{
+            ctype : ConvertEqual,
+            times : 1
+        }
+    };
+
+    if(from < to ){
+        Convert{
+            ctype : ConvertMultiply,
+            times : pow(10,to - from)
+        }
+    } else {
+        Convert {
+            ctype : ConvertDivide,
+            times : pow(10, from - to)
+        }
+    }
+}
+
 public struct CurveVault<phantom T> has key,store{
     id : UID,
     coin_creator : address,
@@ -46,7 +90,16 @@ public struct CurveVault<phantom T> has key,store{
     curve_balance : Balance<T>,
     meta : CoinMetadata<T>,
     curve_money :Balance<sui::sui::SUI>,
+    //token_amplify : u128,
+    token_decimals_value : u128,
+    sui_decimals_value : u128,
+
+
 }
+
+
+
+
 
 public  fun vault_supply<T>(vault : &CurveVault<T>) : u64 {
     vault.total_supply.supply_value() - vault.curve_balance.value()
@@ -54,6 +107,26 @@ public  fun vault_supply<T>(vault : &CurveVault<T>) : u64 {
 
 public fun vault_creator<T>(vault : &CurveVault<T>) : address{
     vault.coin_creator
+}
+
+public fun token_decimals_value<T>(vault : &CurveVault<T>) : u128{
+     vault.token_decimals_value
+}
+
+public fun sui_decimals_value<T>(vault : &CurveVault<T>) : u128{
+     vault.sui_decimals_value
+}
+
+
+public fun convert(amount : u128, convert : &Convert) : u128 {
+    if(convert.ctype == ConvertDivide){
+        return amount / (convert.times as u128)
+    };
+
+    if(convert.ctype == ConvertMultiply){
+        return amount * (convert.times as u128)
+    };
+    amount
 }
 
 
@@ -70,6 +143,8 @@ fun init(ctx : &mut TxContext){
     transfer::share_object(manager);
 }
 
+const SUI_DECIMALS : u8 = 9;
+
 public fun register_coin<T >( treasury: TreasuryCap<T>, meta : CoinMetadata<T>, ctx : &mut TxContext  ){
     let treasury_addr = sui::object::id(&treasury).to_address().to_ascii_string();
     let type_name = std::type_name::get<T>();
@@ -77,7 +152,8 @@ public fun register_coin<T >( treasury: TreasuryCap<T>, meta : CoinMetadata<T>, 
     let meta_name = meta.get_name();
     
     let mut supply = treasury.treasury_into_supply();
-    let balance = supply.increase_supply(INIT_SUPPLY);
+    let token_decimals_value = pow(10,meta.get_decimals() ) ;
+    let balance = supply.increase_supply(INIT_SUPPLY * token_decimals_value);
     let vault = CurveVault<T>{
         
         id : sui::object::new(ctx ),
@@ -86,6 +162,8 @@ public fun register_coin<T >( treasury: TreasuryCap<T>, meta : CoinMetadata<T>, 
         meta:meta,
         curve_balance : balance,
         curve_money : sui::balance::zero(),
+        token_decimals_value : token_decimals_value as u128,
+        sui_decimals_value : pow(10,SUI_DECIMALS) as u128
     };
 
     sui::event::emit(CoinCreatedEvent{
@@ -108,11 +186,17 @@ totoal value
     
     P = 2 * k * S
    EQ0: tv = k *  S * S + c * S
+   
+   sdv = pow(10,sui.decimals)
+   换算成mist为单位 tm = tv * tdv = ( k *  S * S + c * S) * sdv
+
+   
 
   S =  total_supply - curve_balance
 一直 s0, k,c, tv0
 已知 新购买的钱 (tv1 - tv0), 求新增可以购买的代币两 s1-s0
-   EQ1:tv1 = k *  S1 * S1 + c * S1
+   EQ1:tv1 = k *  sp1 * sp1 + c * sp1
+   tm1 = tv1 * sdv
    A = sui_amount = tv1 - tv0
    x = token_amount = s1 - s0
 
@@ -122,33 +206,75 @@ totoal value
     A = k * (x + s0 + s0 ) * x  + c * x
     A = k * x^2 + 2*k*s0*x + c*x
     k * x*x + (2*k*s0 + c)*x - A = 0
+
+
+    pow(10,n) = 10 ^ n     pow(10,6) => 1000_000
+
+td: token.decimals
+sd : sui.decimals
+tdv : pow(10, td) 
+sdv : pow(10,sd)
+
+S = s * pow(10,token.decimals) =  s * tdv
+sp0 = s0 * pow(10,token.decimals) = s0 * tdv
+sp1 = s1 * pow(10,token.decimals) = s1 * tdv
+
+
+ tv1 - tv0 = k *  (s1 + s0) ( s1 - s0) + c * (s1 - s0)
+ 增长的sui : A = tv1 - tv0
+ 增长的mist AM = A * sdv
+ 因为move输入参数,都是以 S *  tdv , sui 也是以mist为单位
+  A = k * (sp1/tdv + sp0/tdv) (sp1/tdv - sp0/tdv)  + c * (sp1/tdv - sp0/tdv)
+  A = k * (sp1 *sp1 - sp0 * sp0)/ (tdv * tdv)  +  c * (sp1 - sp0) / tdv
+  A * tdv * tdv  = k * (sp1 * sp1 - sp0 * sp0) + c* tdv * (sp1 - sp0)
+  A = [k * (sp1 * sp1 - sp0 * sp0) + c* tdv * (sp1 - sp0)] / (tdv * tdv)
+  AM =  [k * (sp1 * sp1 - sp0 * sp0) + c* tdv * (sp1 - sp0)] * sdv / (tdv * tdv)
+  
 */
 const K : u128 = 100; // 放大1e18 倍
 const C : u128 = 28_000_000_000; // 放大1e18 倍
 const AMPLIFY : u128 = 1_000_000_000_000_000_000; // 放大1e18 倍
+const SUI_AMPLIFY : u64 = 1_000_000_000;
 const ERR_NO_NOUGH_BALANCE : u64 = 1;
 
+
 #[allow(lint(self_transfer))]
-entry public(package) fun buy<T>(mut pay : Coin<SUI>, target_amount :u128,vault : &mut CurveVault<T>,ctx : &mut TxContext )  {
-    let s0 = (balance::supply_value<T>(&vault.total_supply) - balance::value<T>(&vault.curve_balance)) as u128;
-    let s1 = (s0 + target_amount) as u128;
-    let tv0 = K * s0 * s0 + C * s0;
-    let tv1 = K * s1 * s1 + C * s1;
-    let diff = ((tv1 - tv0) / AMPLIFY) as u64;
+public fun buy<T>(mut pay : Coin<SUI>, target_amount :u128,vault : &mut CurveVault<T>,ctx : &mut TxContext ) : ( Coin<T>, u64) {
+
+    let mut sp0 = (balance::supply_value<T>(&vault.total_supply) - balance::value<T>(&vault.curve_balance)) as u128;
+    let mut sp1 = (sp0 + target_amount) as u128;
+    let tdv = vault.token_decimals_value;
+    let sdv = vault.sui_decimals_value;
+    log(b"sp0",&sp0);
+    log(b"sp1",&sp1);
+    let tm0 = (K * sp0 * sp0 + C * sp0 * tdv) * sdv /(tdv*tdv) ;
+    let tm1 = (K * sp1 * sp1 + C * sp1 * tdv) * sdv /(tdv*tdv) ;
+    log(b"tm1",&tm1);
+    let mut am  = ((tm1 - tm0) / AMPLIFY  ) as u64;
+    log(b"am",&am);
     let pay_value = pay.balance().value() ;
-    assert!( pay_value >= diff,ERR_NO_NOUGH_BALANCE);
-    
-    if(pay_value == diff){
+    log(b"diff:",&am);
+    log(b"pay_value",& pay_value);
+    assert!( pay_value >= am,ERR_NO_NOUGH_BALANCE);
+
+    log(b"diff",&am);
+    if(pay_value == am){
         // transfer::public_transfer(pay, vault.coin_creator);
         vault.curve_money.join(pay.into_balance());
     }
     else{
-        let newCoin = pay.split(diff ,ctx);
+        let newCoin = pay.split(am ,ctx);
         balance::join(&mut vault.curve_money,newCoin.into_balance());
         transfer::public_transfer(pay, ctx.sender())
     };
-
+    log(b"curve_balance:",&vault.curve_balance.value());
+    log(b"target_amount:",&target_amount);
     let token = vault.curve_balance.split(target_amount as u64).into_coin(ctx);
+    (token,am)
+}
+
+entry public fun entry_buy<T>(pay : Coin<SUI>, target_amount :u128,vault : &mut CurveVault<T>,ctx : &mut TxContext ){
+    let (token,cost) = buy(pay,target_amount,vault,ctx);
     transfer::public_transfer(token, ctx.sender());
 
     let curve_address = object::id(vault).to_address();
@@ -158,30 +284,45 @@ entry public(package) fun buy<T>(mut pay : Coin<SUI>, target_amount :u128,vault 
         token_amount : target_amount as u64,
         token_from: curve_address,
         token_to:ctx.sender(),
-        sui_amount : diff,
+        sui_amount : cost ,
     })
-    
 }
 
 
 #[allow(lint(self_transfer))]
-entry public(package) fun sell<T>(token_amount : u128,vault : &mut CurveVault<T>,ctx : &mut TxContext )  {
-    let s0 = (balance::supply_value<T>(&vault.total_supply) - balance::value<T>(&vault.curve_balance)) as u128;
-    let s1 = s0 - token_amount ;
-    let tv0 = K * s0 * s0 + C * s0;
-    let tv1 = K * s1 * s1 + C * s1;
-    let diff = ((tv0 - tv1) / AMPLIFY) as u64;
-    let coin = vault.curve_money.split(diff).into_coin(ctx);
+public fun sell<T>(token : Coin<T> ,vault : &mut CurveVault<T>,ctx : &mut TxContext ) : Coin<SUI>  {
+    let token_amount  = token.value();
+    let sp0 = (balance::supply_value<T>(&vault.total_supply) - balance::value<T>(&vault.curve_balance)) as u128;
+    log(b"sp0",&sp0);
+    log(b"token_amount",&token_amount);
+    let sp1 = sp0 - (token_amount as u128) ;
+    let tdv = vault.token_decimals_value;
+    let sdv = vault.sui_decimals_value;
+    log(b"sp0",&sp0);
+    log(b"sp1",&sp1);
+    let tm0 = (K * sp0 * sp0 + C * sp0 * tdv) * sdv /(tdv*tdv) ;
+    let tm1 = (K * sp1 * sp1 + C * sp1 * tdv) * sdv /(tdv*tdv) ;
+
+    let am  = ((tm0 - tm1) / AMPLIFY  ) as u64;
+    let coin = vault.curve_money.split(am).into_coin(ctx);
+    vault.curve_balance.join(token.into_balance());
+    coin
+}
+
+entry public fun entry_sell<T>(token : Coin<T>,vault : &mut CurveVault<T>,ctx : &mut TxContext )  {
+    let token_amount = token.value();
+    let coin = sell(token,vault,ctx);
+    let sui_amount = coin.value();
     transfer::public_transfer(coin, ctx.sender());
 
     let curve_address = object::id(vault).to_address();
-    let coin_type_name = std::type_name::get<T>().into_string();
+    let coin_type_name = std::type_name::get<T>().into_string();  
     emit(CoinTransferEvent{
         coin_type_name : coin_type_name ,
-        token_amount : token_amount as u64,
+        token_amount : token_amount ,
         token_from: ctx.sender(),
         token_to: curve_address,
-        sui_amount : diff,
+        sui_amount : sui_amount,
     })
 }
 

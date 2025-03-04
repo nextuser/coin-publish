@@ -9,11 +9,14 @@ const ENotImplemented: u64 = 0;
 
 #[test_only]
 module coin_simple::coin_simple_tests;
+use sui::coin::{Self,Coin};
+use sui::sui::SUI;
 use coin_simple::template::{TEMPLATE,Self};
 use coin_manager::coin_manager::{Self,CoinCreatedEvent,CoinTransferEvent,CoinManagerCreated,CurveVault};
 use sui::test_scenario::{Self as tsc,TransactionEffects,Scenario};
 use sui::tx_context;
 use std::option::{Self,Option};
+use coin_manager::logger::log;
 
 const Operator : address = @0xa;
 const User : address = @0xb;
@@ -42,25 +45,55 @@ const User : address = @0xb;
 #[test]
 fun test_coin_crate(){
     let mut sc1 =  tsc::begin(Operator);
-    //manager init
-    coin_manager::init_for_test( sc1.ctx());
+    {
+        //manager init
+        coin_manager::init_for_test( sc1.ctx());
+    };
+    
     let effects = sc1.next_tx(User);
-    let manager = tsc::take_shared<coin_manager::Manager>(&sc1);
-    assert!(manager.manager_owner() == Operator,1);
-    assert!(effects.num_user_events() > 0);
-    tsc::return_shared(manager);
-    //coin template init
-    template::init_for_test(sc1.ctx());
+    {
+        let manager = tsc::take_shared<coin_manager::Manager>(&sc1);
+        assert!(manager.manager_owner() == Operator,1);
+        assert!(effects.num_user_events() > 0);
+        tsc::return_shared(manager);
+        //coin template init
+        template::init_for_test(sc1.ctx());
+    };
 
+    //buy
     let effects = tsc::next_tx(&mut sc1, User);
-    assert!(effects.num_user_events() > 0 ,3);
-    let vault = tsc::take_shared<CurveVault<coin_simple::template::TEMPLATE>>(&sc1);
-    assert!(vault.vault_creator() == User,4);
-    assert!(vault.vault_supply() == 0,5);
-    tsc::return_shared(vault);
+    {
+        assert!(effects.num_user_events() > 0 ,3);
+        let mut vault = tsc::take_shared<CurveVault<coin_simple::template::TEMPLATE>>(&sc1);
+        assert!(vault.vault_creator() == User,4);
+        assert!(vault.vault_supply() == 0,5);
+        let pay = coin::mint_for_testing<SUI>(28100000, sc1.ctx());
+        let target_amount = 1_000_000 * vault.token_decimals_value();
+        let (token,cost) = coin_manager::buy(pay, target_amount,&mut vault,sc1.ctx());
+        assert!(token.value() == (target_amount as u64));
+        transfer::public_transfer(token, User);
+        log(b"cost:",&cost);
+        //std::debug::print(&vault);
+        tsc::return_shared(vault);
+    };
+
+    //sell
+    let effects = tsc::next_tx(&mut sc1, User);
+    {
+        ////assert!(effects.num_user_events() > 0 ,3);
+        let mut vault = tsc::take_shared<CurveVault<coin_simple::template::TEMPLATE>>(&sc1);
+        let token_amount = 1_000_000 * (vault.token_decimals_value() as u64);
+        assert!(vault.vault_creator() == User,4);
+        assert!(vault.vault_supply() == token_amount,5);
+        
+        let token = coin::mint_for_testing<TEMPLATE>(token_amount, sc1.ctx());
+        let c = coin_manager::sell(token,&mut vault,sc1.ctx());
+        assert!(vault.vault_supply() == 0,6);
+        log(b"sell result :coin=",&c);
+        transfer::public_transfer(c, User);
+        tsc::return_shared(vault);
+    };
     tsc::end(sc1);
-    
-    
 }
 
 // #[test, expected_failure(abort_code = ::coin_simple::coin_simple_tests::ENotImplemented)]
