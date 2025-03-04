@@ -99,7 +99,7 @@ export async function publishCoin(params : PublishCoinParams, operator :string) 
     updated = template.update_constants(
         updated,
         bcs.u8().serialize(params.decimal).toBytes(), // new value
-        bcs.u8().serialize(6).toBytes(), // current value
+        bcs.u8().serialize(9).toBytes(), // current value
         'U8', // type of the constant
     );
 

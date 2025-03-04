@@ -9,7 +9,7 @@ module coin_simple::template {
     /// The OTW for the Coin
     public struct TEMPLATE has drop {}
 
-    const DECIMALS: u8 = 6;
+    const DECIMALS: u8 = 9;
     const SYMBOL: vector<u8> = b"SYMBOL_TEMPLATE";
     const NAME: vector<u8> = b"COIN_NAME_TEMPLATE";
     const DESCRIPTION: vector<u8> = b"COIN_DESCRIPTION_TEMPLATE";

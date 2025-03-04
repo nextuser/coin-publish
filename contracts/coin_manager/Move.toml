@@ -19,8 +19,8 @@ Sui = {local="/home/ljl/sui-local/sui/crates/sui-framework/packages/sui-framewor
 # Override = { local = "../conflicting/version", override = true }
 
 [addresses]
-#coin_manager = "0x2b7e885c92e113de8dca88d7de01ef1cdf4169a5e98f8087f3ef86fb204dd8e9"
-coin_manager = "0x0"
+coin_manager = "0x772aa203264cb2fc80c2c36650cbe5790a04792c6a320eb1e5875720c48dbcd3"
+#coin_manager = "0x0"
 
 # Named addresses will be accessible in Move as `@name`. They're also exported:
 # for example, `std = "0x1"` is exported by the Standard Library.

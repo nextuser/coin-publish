@@ -25,11 +25,23 @@ export async function queryCreatedEvents(suiClient:SuiClient,owner:string) : Pro
         //console.log(event);
     });
 
+        
+    if(created_events.length == 0){
+        console.log("fail to find event in package ",mananger_package );
+    }
+
     return created_events;
 
 }
 
-export async function getSupply(suiClient:SuiClient,vault : string) : Promise<bigint>{
+export function getTypeByMeta(meta_name : string){
+    console.log('meta_name',meta_name);
+    let start = meta_name.indexOf("<");
+    let end = meta_name.indexOf(">")
+    return meta_name.substring(start + 1 ,end)
+}
+
+export async function getVault(suiClient:SuiClient,vault : string) : Promise<CurveVault | null>{
     let result = await suiClient.getObject({
         id : vault,
         options : {
@@ -42,13 +54,14 @@ export async function getSupply(suiClient:SuiClient,vault : string) : Promise<bi
         console.log("fields",content.fields as unknown);
         let vault = content.fields as unknown as CurveVault ;
         console.log("vault :" ,vault);
-        return BigInt(vault.total_supply.fields.value) - BigInt(vault.curve_balance);
+        return vault;
     }
-
-    return 0n;
-    
+    return null;
 } 
 
 
 
+export  function getSupply(vault :CurveVault){
+    return BigInt(vault.total_supply.fields.value) - BigInt(vault.curve_balance);
+}
 

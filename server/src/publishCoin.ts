@@ -81,11 +81,6 @@ async function publishCoin(params : PublishCoinParams, operator :string) : Promi
     let jsonRet = template.deserialize(bytecode);
     let bytes = template.serialize(jsonRet);
     assert(bytes.length == bytecode.length);
-    // console.log("jsonRet",jsonRet);
-    // console.log("bytes ",bytes);
-    // console.log("bytecodes ",json.modules[0]);
-
-    
     // please, manually scan the existing values, this operation is very sensitive
     ///console.log("constants:",template.get_constants(bytecode));
 
@@ -98,7 +93,7 @@ async function publishCoin(params : PublishCoinParams, operator :string) : Promi
     updated = template.update_constants(
         updated,
         bcs.u8().serialize(params.decimal).toBytes(), // new value
-        bcs.u8().serialize(6).toBytes(), // current value
+        bcs.u8().serialize(9).toBytes(), // current value
         'U8', // type of the constant
     );
 
@@ -138,14 +133,6 @@ async function publishCoin(params : PublishCoinParams, operator :string) : Promi
         );
     }
 
-
-       // Update URL
-    updated = template.update_constants(
-        updated,
-        bcs.u64().serialize(params.initialSupply).toBytes(), // new value
-        bcs.u64().serialize('1000000').toBytes(), // current value
-        'U64', // type of the constant
-    );
     let signer = getLocalSigner();
     let tx = new Transaction();
     let arr = updated as unknown as number[];
@@ -257,7 +244,7 @@ async function test_publish(){
         module_name:"ydt",
         coin_name : "袁大头",
         symbol : "YDT",
-        decimal: 9,
+        decimal: 7,
         desc: "袁大头是一个有趣的代币",
         initialSupply : "1000000000000000000",
         imageUrl : "https://img.alicdn.com/bao/uploaded/i4/2211353769366/O1CN01LfIYel2J3gPxGbQws_!!0-item_pic.jpg" 

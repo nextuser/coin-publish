@@ -3,7 +3,7 @@
 module coin_manager::coin_manager_tests;
 // uncomment this line to import the module
 // use coin_manager::coin_manager;
-use coin_manager::coin_manager::pow;
+use coin_manager::utils::pow;
 
 
 #[test]

@@ -190,8 +190,8 @@ public fun buy<T>(mut pay : Coin<SUI>, target_amount :u128,vault : &mut CurveVau
     let sdv = vault.sui_decimals_value;
     log(b"sp0",&sp0);
     log(b"sp1",&sp1);
-    let tm0 = (K * sp0 * sp0 + C * sp0 * tdv) * sdv /(tdv*tdv) ;
-    let tm1 = (K * sp1 * sp1 + C * sp1 * tdv) * sdv /(tdv*tdv) ;
+    let tm0 = (K * sp0 * sp0 + C * sp0 * tdv)  /tdv * sdv / tdv;
+    let tm1 = (K * sp1 * sp1 + C * sp1 * tdv)  /tdv * sdv / tdv ;
     log(b"tm1",&tm1);
     let am  = ((tm1 - tm0) / AMPLIFY  ) as u64;
     log(b"am",&am);
@@ -243,8 +243,8 @@ public fun sell<T>(token : Coin<T> ,vault : &mut CurveVault<T>,ctx : &mut TxCont
     let sdv = vault.sui_decimals_value;
     log(b"sp0",&sp0);
     log(b"sp1",&sp1);
-    let tm0 = (K * sp0 * sp0 + C * sp0 * tdv) * sdv /(tdv*tdv) ;
-    let tm1 = (K * sp1 * sp1 + C * sp1 * tdv) * sdv /(tdv*tdv) ;
+    let tm0 = (K * sp0 * sp0 + C * sp0 * tdv) /tdv * sdv / tdv;
+    let tm1 = (K * sp1 * sp1 + C * sp1 * tdv)  /tdv * sdv / tdv ;
 
     let am  = ((tm0 - tm1) / AMPLIFY  ) as u64;
     let coin = vault.curve_money.split(am).into_coin(ctx);
