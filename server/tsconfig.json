@@ -11,6 +11,6 @@
     "isolatedModules": true, // 确保每个文件都是独立的模块
     "noEmit": true // 不生成输出文件（如果使用 Webpack）
   },
-  "include": ["src/**/*"], // 包含的源文件路径
+  "include": ["src/**/*", "../web/lib/coin_info.ts"], // 包含的源文件路径
   "exclude": ["node_modules"] // 排除的路径
 }

@@ -5,8 +5,8 @@ edition = "2024.beta" # edition = "legacy" to use legacy (pre-2024) Move
 # authors = ["..."]      # e.g., ["Joe Smith (joesmith@noemail.com)", "John Snow (johnsnow@noemail.com)"]
 
 [dependencies]
-Sui = { git = "https://gh.api.99988866.xyz/https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet" }
-
+#Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet" }
+Sui = {local="/home/ljl/sui-testnet/crates/sui-framework/packages/sui-framework/"}
 # For remote import, use the `{ git = "...", subdir = "...", rev = "..." }`.
 # Revision can be a branch, a tag, and a commit hash.
 # MyRemotePackage = { git = "https://some.remote/host.git", subdir = "remote/path", rev = "main" }
@@ -19,7 +19,7 @@ Sui = { git = "https://gh.api.99988866.xyz/https://github.com/MystenLabs/sui.git
 # Override = { local = "../conflicting/version", override = true }
 
 [addresses]
-coin_manager = "0xca349b1c2ba850fd29f2b5ef203ae3ff545929b8140b44565f5a018d146f92ef"
+coin_manager = "0xb5d50c9e7cc060ff80f6b35d1aa7ad52ecedf869ee16cff61a5486b67893bbb2"
 
 # Named addresses will be accessible in Move as `@name`. They're also exported:
 # for example, `std = "0x1"` is exported by the Standard Library.

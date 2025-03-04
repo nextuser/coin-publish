@@ -1,0 +1,188 @@
+ljl@ljl-i5-14400:src$ npx tsx publishCoin.ts 
+publish coin
+bytecode length : 731
+constants: [
+  { type_: 'U8', value_bcs: [ 6 ] },
+  {
+    type_: 'Vector(U8)',
+    value_bcs: [
+      15, 83, 89, 77, 66, 79,
+      76, 95, 84, 69, 77, 80,
+      76, 65, 84, 69
+    ]
+  },
+  {
+    type_: 'Vector(U8)',
+    value_bcs: [
+      18, 67, 79, 73, 78, 95, 78,
+      65, 77, 69, 95, 84, 69, 77,
+      80, 76, 65, 84, 69
+    ]
+  },
+  {
+    type_: 'Vector(U8)',
+    value_bcs: [
+      25, 67, 79, 73, 78, 95, 68, 69,
+      83, 67, 82, 73, 80, 84, 73, 79,
+      78, 95, 84, 69, 77, 80, 76, 65,
+      84, 69
+    ]
+  },
+  {
+    type_: 'Vector(U8)',
+    value_bcs: [
+      18, 73, 77, 65, 71, 69, 95,
+      85, 82, 76, 95, 84, 69, 77,
+      80, 76, 65, 84, 69
+    ]
+  }
+]
+signer.address=toSuiAddress() {
+    return this.getPublicKey().toSuiAddress();
+  }
+digest: GqkhkrLFRhonWYMYdG24PcYAf1j6fhXMSSxa6TksQ3m2
+publish succeed 
+-------------------published result :
+ {
+  digest: 'GqkhkrLFRhonWYMYdG24PcYAf1j6fhXMSSxa6TksQ3m2',
+  effects: {
+    messageVersion: 'v1',
+    status: { status: 'success' },
+    executedEpoch: '662',
+    gasUsed: {
+      computationCost: '1000000',
+      storageCost: '14645200',
+      storageRebate: '978120',
+      nonRefundableStorageFee: '9880'
+    },
+    modifiedAtVersions: [ [Object] ],
+    transactionDigest: 'GqkhkrLFRhonWYMYdG24PcYAf1j6fhXMSSxa6TksQ3m2',
+    created: [ [Object], [Object], [Object] ],
+    mutated: [ [Object] ],
+    gasObject: { owner: [Object], reference: [Object] },
+    eventsDigest: 'FG1KdWByiyVnQdaJNmdgAxVjD2JC2wnQ7ePHES5XeyHK',
+    dependencies: [
+      '13JBYPHZLeCjtA5JMRKvbPLi8P3jCZgNKZMPQAmYaitR',
+      '5XvhL1EeEbZcMfKaGHzkiVvbkVk1DM7Adp4cMbku4gQ4',
+      '6Gh9oKGzgh65Kp7WLMJFiy7aJj7mGHU7a7pZxR5zYwTG',
+      'AVBCfV9XXGmjMemHumSzwc4CHgZbppsFpgYabudqQvc8'
+    ]
+  },
+  events: [
+    {
+      id: [Object],
+      packageId: '0x2b2e55f4b3bd1c055c0e3f7ab504391e2992050b18bb9ba9a21e9ffad5ca3468',
+      transactionModule: 'ydt',
+      sender: '0xf7ec2215e565b7a18d7b00e70fccda74b30c3ecceffb5857b1b3d2249e28e94f',
+      type: '0x4d1a0f1a85bd04d61afc7435c7461a916a57bc85c4cbae0909769d5e55e2d722::coin_manager::CoinInfo',
+      parsedJson: [Object],
+      bcsEncoding: 'base64',
+      bcs: 'SjJiMmU1NWY0YjNiZDFjMDU1YzBlM2Y3YWI1MDQzOTFlMjk5MjA1MGIxOGJiOWJhOWEyMWU5ZmZhZDVjYTM0Njg6OnlkdDo6WURUQDJiMmU1NWY0YjNiZDFjMDU1YzBlM2Y3YWI1MDQzOTFlMjk5MjA1MGIxOGJiOWJhOWEyMWU5ZmZhZDVjYTM0NjgJ6KKB5aSn5aS0QDQ4ZmNiZWFmNDI0Y2RkMzc4ZjU0M2M4YjczYTlmY2QwODhlY2I1MGMyOTJjZGU5ZDQyOGVhNWMwY2NhZDY0ZTk='
+    }
+  ],
+  objectChanges: [
+    {
+      type: 'mutated',
+      sender: '0xf7ec2215e565b7a18d7b00e70fccda74b30c3ecceffb5857b1b3d2249e28e94f',
+      owner: [Object],
+      objectType: '0x2::coin::Coin<0x2::sui::SUI>',
+      objectId: '0x5c5aef5304c8ee2f87dc754df2cc20e7e868e938b5636324f6dc88284dae82de',
+      version: '295745197',
+      previousVersion: '295745196',
+      digest: 'Ds9ZZCw2m8UshmqX492Smv4aJjv332z2KkKV7pHue5ep'
+    },
+    {
+      type: 'published',
+      packageId: '0x2b2e55f4b3bd1c055c0e3f7ab504391e2992050b18bb9ba9a21e9ffad5ca3468',
+      version: '1',
+      digest: '7EvVnsYd4QcbaULVB85z9HKJW9whXLGBZ4BSp5jDnz7r',
+      modules: [Array]
+    },
+    {
+      type: 'created',
+      sender: '0xf7ec2215e565b7a18d7b00e70fccda74b30c3ecceffb5857b1b3d2249e28e94f',
+      owner: [Object],
+      objectType: '0x4d1a0f1a85bd04d61afc7435c7461a916a57bc85c4cbae0909769d5e55e2d722::coin_manager::CurveVault<0x2b2e55f4b3bd1c055c0e3f7ab504391e2992050b18bb9ba9a21e9ffad5ca3468::ydt::YDT>',
+      objectId: '0x6a303bbc3846ab911c5ccf91634aad0d6b6aeb08c09fd2d346c61b0ecf6e092e',
+      version: '295745197',
+      digest: '5UBZSFYAZKH83cUoNHwStMmBtvSZHEtuUDsskRiLFVjk'
+    },
+    {
+      type: 'created',
+      sender: '0xf7ec2215e565b7a18d7b00e70fccda74b30c3ecceffb5857b1b3d2249e28e94f',
+      owner: [Object],
+      objectType: '0x2::package::UpgradeCap',
+      objectId: '0x9dff94f7f8c89012ae8a5f4b075d55a9550ce990f47bb35d9b7d50877194cd47',
+      version: '295745197',
+      digest: 'GvxrcvkWaeTpyc1nYVW5D1HXrbhhEEG292rQdrsT1qQj'
+    }
+  ],
+  confirmedLocalExecution: false
+}
+created: {
+  owner: 'Immutable',
+  reference: {
+    objectId: '0x2b2e55f4b3bd1c055c0e3f7ab504391e2992050b18bb9ba9a21e9ffad5ca3468',
+    version: 1,
+    digest: '7EvVnsYd4QcbaULVB85z9HKJW9whXLGBZ4BSp5jDnz7r'
+  }
+}
+created: {
+  owner: { Shared: { initial_shared_version: 295745197 } },
+  reference: {
+    objectId: '0x6a303bbc3846ab911c5ccf91634aad0d6b6aeb08c09fd2d346c61b0ecf6e092e',
+    version: 295745197,
+    digest: '5UBZSFYAZKH83cUoNHwStMmBtvSZHEtuUDsskRiLFVjk'
+  }
+}
+created: {
+  owner: {
+    AddressOwner: '0xf7ec2215e565b7a18d7b00e70fccda74b30c3ecceffb5857b1b3d2249e28e94f'
+  },
+  reference: {
+    objectId: '0x9dff94f7f8c89012ae8a5f4b075d55a9550ce990f47bb35d9b7d50877194cd47',
+    version: 295745197,
+    digest: 'GvxrcvkWaeTpyc1nYVW5D1HXrbhhEEG292rQdrsT1qQj'
+  }
+}
+0x2b2e55f4b3bd1c055c0e3f7ab504391e2992050b18bb9ba9a21e9ffad5ca3468 package Immutable
+0x6a303bbc3846ab911c5ccf91634aad0d6b6aeb08c09fd2d346c61b0ecf6e092e 0x4d1a0f1a85bd04d61afc7435c7461a916a57bc85c4cbae0909769d5e55e2d722::coin_manager::CurveVault<0x2b2e55f4b3bd1c055c0e3f7ab504391e2992050b18bb9ba9a21e9ffad5ca3468::ydt::YDT> { Shared: { initial_shared_version: 295745197 } }
+0x9dff94f7f8c89012ae8a5f4b075d55a9550ce990f47bb35d9b7d50877194cd47 0x2::package::UpgradeCap {
+  AddressOwner: '0xf7ec2215e565b7a18d7b00e70fccda74b30c3ecceffb5857b1b3d2249e28e94f'
+}
+package id: 0x2b2e55f4b3bd1c055c0e3f7ab504391e2992050b18bb9ba9a21e9ffad5ca3468
+created objects:id, type,owner 0x6a303bbc3846ab911c5ccf91634aad0d6b6aeb08c09fd2d346c61b0ecf6e092e 0x4d1a0f1a85bd04d61afc7435c7461a916a57bc85c4cbae0909769d5e55e2d722::coin_manager::CurveVault<0x2b2e55f4b3bd1c055c0e3f7ab504391e2992050b18bb9ba9a21e9ffad5ca3468::ydt::YDT> { Shared: { initial_shared_version: 295745197 } }
+created objects:id, type,owner 0x9dff94f7f8c89012ae8a5f4b075d55a9550ce990f47bb35d9b7d50877194cd47 0x2::package::UpgradeCap {
+  AddressOwner: '0xf7ec2215e565b7a18d7b00e70fccda74b30c3ecceffb5857b1b3d2249e28e94f'
+}
+event: {
+  id: {
+    txDigest: 'GqkhkrLFRhonWYMYdG24PcYAf1j6fhXMSSxa6TksQ3m2',
+    eventSeq: '0'
+  },
+  packageId: '0x2b2e55f4b3bd1c055c0e3f7ab504391e2992050b18bb9ba9a21e9ffad5ca3468',
+  transactionModule: 'ydt',
+  sender: '0xf7ec2215e565b7a18d7b00e70fccda74b30c3ecceffb5857b1b3d2249e28e94f',
+  type: '0x4d1a0f1a85bd04d61afc7435c7461a916a57bc85c4cbae0909769d5e55e2d722::coin_manager::CoinInfo',
+  parsedJson: {
+    meta_name: '袁大头',
+    treasury_address: '48fcbeaf424cdd378f543c8b73a9fcd088ecb50c292cde9d428ea5c0ccad64e9',
+    type_addr: '2b2e55f4b3bd1c055c0e3f7ab504391e2992050b18bb9ba9a21e9ffad5ca3468',
+    type_name: '2b2e55f4b3bd1c055c0e3f7ab504391e2992050b18bb9ba9a21e9ffad5ca3468::ydt::YDT'
+  },
+  bcsEncoding: 'base64',
+  bcs: 'SjJiMmU1NWY0YjNiZDFjMDU1YzBlM2Y3YWI1MDQzOTFlMjk5MjA1MGIxOGJiOWJhOWEyMWU5ZmZhZDVjYTM0Njg6OnlkdDo6WURUQDJiMmU1NWY0YjNiZDFjMDU1YzBlM2Y3YWI1MDQzOTFlMjk5MjA1MGIxOGJiOWJhOWEyMWU5ZmZhZDVjYTM0NjgJ6KKB5aSn5aS0QDQ4ZmNiZWFmNDI0Y2RkMzc4ZjU0M2M4YjczYTlmY2QwODhlY2I1MGMyOTJjZGU5ZDQyOGVhNWMwY2NhZDY0ZTk=',
+  timestampMs: '1740998427579'
+}
+cost -0.01466708
+coin type: 0x2::sui::SUI 0x2::sui::SUI {
+  coinType: '0x2::sui::SUI',
+  coinObjectCount: 1,
+  totalBalance: '6337828864',
+  lockedBalance: {}
+} {
+  coinType: '0x2::sui::SUI',
+  coinObjectCount: 1,
+  totalBalance: '6323161784',
+  lockedBalance: {}
+}

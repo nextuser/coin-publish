@@ -1,0 +1,1 @@
+ sui client publish |tee ./pub-testnet.out
