@@ -12,7 +12,7 @@ import { SuiClient,getFullnodeUrl,GasCostSummary } from '@mysten/sui/client';
 import { test_env as env } from "./sui/config";
 import { threadId } from 'worker_threads';
 import dotenv from 'dotenv'
-
+import { getCost } from './sui/sui_client';
 
 type DumpFormat ={
     modules : string[],
@@ -36,11 +36,11 @@ type PublishCoinParams =  {
     desc:string ,initialSupply : string, imageUrl? : string
 }
 
-function coinTemplateBytes2() : [ Uint8Array,string[]]{
+function readCoinTemplateBytes() : [ Uint8Array,string[]]{
     let file = path.resolve(__dirname, '../../contracts/coin_simple/out.json');
     let json = JSON.parse(String(fs.readFileSync(file))) as DumpFormat;
     let bytecode : Uint8Array =  fromBase64(json.modules[0]);
-    ///console.log("coinTemplateBytes2 hex:",toHex(bytecode));
+    ///console.log("readCoinTemplateBytes hex:",toHex(bytecode));
     return [bytecode,json.dependencies];
 }
 
@@ -64,9 +64,6 @@ type  PublishResult = {
 
 }
 
-function getCost(gasUsed:GasCostSummary) : bigint{
-    return BigInt(gasUsed.computationCost) + BigInt(gasUsed.storageCost)    - BigInt(gasUsed.storageRebate);
-}
 
 export async function publishCoin(params : PublishCoinParams, operator :string) : Promise<PublishResult>{
 
@@ -75,7 +72,7 @@ export async function publishCoin(params : PublishCoinParams, operator :string) 
     //console.log(version);
     console.log("publish coin");
 
-    let [bytecode,deps] = coinTemplateBytes2();
+    let [bytecode,deps] = readCoinTemplateBytes();
     console.log("bytecode length :",bytecode.length);
 
     
@@ -234,15 +231,15 @@ export async function publishCoin(params : PublishCoinParams, operator :string) 
 
     let eventsDigest = result.effects.eventsDigest;
     if(eventsDigest){
-        suiClient.queryEvents({query:{Transaction : result.digest }}).then((events)=>{
-            events.data.forEach((item)=>{
-                //console.log("event:",item);    
-                if(item.type.endsWith("coin_manager::CoinCreatedEvent")){
-                    publishResult.created_event =  item.parsedJson as CoinCreatedEvent;
-                    publishResult.event_type = item.type;
-                }
-            });
-        })
+       let events = await suiClient.queryEvents({query:{Transaction : result.digest }});
+        events.data.forEach((item)=>{
+            //console.log("event:",item);    
+            if(item.type.endsWith("coin_manager::CoinCreatedEvent")){
+                publishResult.created_event =  item.parsedJson as CoinCreatedEvent;
+                publishResult.event_type = item.type;
+            }
+        });
+        
     }
 
     let newbalance = await suiClient.getBalance({owner:signer.getPublicKey().toSuiAddress()})

@@ -21,6 +21,7 @@ public struct CoinCreatedEvent has copy,drop{
 
 public struct CoinTransferEvent has copy,drop{
     coin_type_name : ascii::String,
+    token_before_transfer : u64,
     token_from : address,
     token_to : address,
     token_amount : u64,
@@ -52,10 +53,6 @@ public struct CurveVault<phantom T> has key,store{
     token_decimals_value : u128,
     sui_decimals_value : u128,
 }
-
-
-
-
 
 public  fun vault_supply<T>(vault : &CurveVault<T>) : u64 {
     vault.total_supply.supply_value() - vault.curve_balance.value()
@@ -182,10 +179,10 @@ const ERR_NO_NOUGH_BALANCE : u64 = 1;
 
 
 #[allow(lint(self_transfer))]
-public fun buy<T>(mut pay : Coin<SUI>, target_amount :u128,vault : &mut CurveVault<T>,ctx : &mut TxContext ) : ( Coin<T>, u64) {
-
-    let  sp0 = (balance::supply_value<T>(&vault.total_supply) - balance::value<T>(&vault.curve_balance)) as u128;
-    let  sp1 = (sp0 + target_amount) as u128;
+public fun buy<T>(mut pay : Coin<SUI>, target_amount :u64,vault : &mut CurveVault<T>,ctx : &mut TxContext ) : ( Coin<T>, u64,u64) {
+    let sp =  (balance::supply_value<T>(&vault.total_supply) - balance::value<T>(&vault.curve_balance));
+    let  sp0 = sp as u128 ;
+    let  sp1 = (sp + target_amount) as u128;
     let tdv = vault.token_decimals_value;
     let sdv = vault.sui_decimals_value;
     log(b"sp0",&sp0);
@@ -213,18 +210,19 @@ public fun buy<T>(mut pay : Coin<SUI>, target_amount :u128,vault : &mut CurveVau
     log(b"curve_balance:",&vault.curve_balance.value());
     log(b"target_amount:",&target_amount);
     let token = vault.curve_balance.split(target_amount as u64).into_coin(ctx);
-    (token,am)
+    (token,am,sp )
 }
 
-entry public fun entry_buy<T>(pay : Coin<SUI>, target_amount :u128,vault : &mut CurveVault<T>,ctx : &mut TxContext ){
-    let (token,cost) = buy(pay,target_amount,vault,ctx);
+entry public fun entry_buy<T>(pay : Coin<SUI>, target_amount :u64,vault : &mut CurveVault<T>,ctx : &mut TxContext ){
+    let (token,cost,sp0) = buy(pay,target_amount,vault,ctx);
     transfer::public_transfer(token, ctx.sender());
 
     let curve_address = object::id(vault).to_address();
     let coin_type_name = std::type_name::get<T>().into_string();
     emit(CoinTransferEvent{
+        token_before_transfer : sp0 ,
         coin_type_name : coin_type_name ,
-        token_amount : target_amount as u64,
+        token_amount : target_amount ,
         token_from: curve_address,
         token_to:ctx.sender(),
         sui_amount : cost ,
@@ -233,9 +231,10 @@ entry public fun entry_buy<T>(pay : Coin<SUI>, target_amount :u128,vault : &mut 
 
 
 #[allow(lint(self_transfer))]
-public fun sell<T>(token : Coin<T> ,vault : &mut CurveVault<T>,ctx : &mut TxContext ) : Coin<SUI>  {
+public fun sell<T>(token : Coin<T> ,vault : &mut CurveVault<T>,ctx : &mut TxContext ) : (Coin<SUI>,u64)  {
     let token_amount  = token.value();
-    let sp0 = (balance::supply_value<T>(&vault.total_supply) - balance::value<T>(&vault.curve_balance)) as u128;
+    let sp = (balance::supply_value<T>(&vault.total_supply) - balance::value<T>(&vault.curve_balance)) ;
+    let sp0 = sp as u128;
     log(b"sp0",&sp0);
     log(b"token_amount",&token_amount);
     let sp1 = sp0 - (token_amount as u128) ;
@@ -249,18 +248,19 @@ public fun sell<T>(token : Coin<T> ,vault : &mut CurveVault<T>,ctx : &mut TxCont
     let am  = ((tm0 - tm1) / AMPLIFY  ) as u64;
     let coin = vault.curve_money.split(am).into_coin(ctx);
     vault.curve_balance.join(token.into_balance());
-    coin
+    (coin,sp)
 }
 
 entry public fun entry_sell<T>(token : Coin<T>,vault : &mut CurveVault<T>,ctx : &mut TxContext )  {
     let token_amount = token.value();
-    let coin = sell(token,vault,ctx);
+    let (coin , sp0) = sell(token,vault,ctx);
     let sui_amount = coin.value();
     transfer::public_transfer(coin, ctx.sender());
 
     let curve_address = object::id(vault).to_address();
     let coin_type_name = std::type_name::get<T>().into_string();  
     emit(CoinTransferEvent{
+        token_before_transfer : sp0,
         coin_type_name : coin_type_name ,
         token_amount : token_amount ,
         token_from: ctx.sender(),

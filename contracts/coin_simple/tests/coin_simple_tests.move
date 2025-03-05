@@ -68,8 +68,10 @@ fun test_coin_crate(){
         assert!(vault.vault_creator() == User,4);
         assert!(vault.vault_supply() == 0,5);
         let pay = coin::mint_for_testing<SUI>(28100000, sc1.ctx());
-        let target_amount = 1_000_000 * vault.token_decimals_value();
-        let (token,cost) = coin_manager::buy(pay, target_amount,&mut vault,sc1.ctx());
+        let target_amount = 1_000_000 * vault.token_decimals_value() ;
+        let sp = vault.vault_supply();
+        let (token,cost,s0 ) = coin_manager::buy(pay, target_amount as u64,&mut vault,sc1.ctx());
+        assert!(s0 == sp);
         assert!(token.value() == (target_amount as u64));
         transfer::public_transfer(token, User);
         log(b"cost:",&cost);
@@ -87,7 +89,7 @@ fun test_coin_crate(){
         assert!(vault.vault_supply() == token_amount,5);
         
         let token = coin::mint_for_testing<TEMPLATE>(token_amount, sc1.ctx());
-        let c = coin_manager::sell(token,&mut vault,sc1.ctx());
+        let (c,_) = coin_manager::sell(token,&mut vault,sc1.ctx());
         assert!(vault.vault_supply() == 0,6);
         log(b"sell result :coin=",&c);
         transfer::public_transfer(c, User);

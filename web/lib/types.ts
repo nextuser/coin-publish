@@ -64,4 +64,29 @@ export type CurveVault = {
     curve_balance : string,
     meta : MStruct<CoinMetadata>,
     curve_money :string,
+    token_decimals_value : string,
+    sui_decimals_value : string,
 }
+
+
+function getTypeName<T>(obj: T): string {
+    if (typeof obj === 'object') {
+        if (obj === null) {
+            return 'null';
+        }
+        return obj.constructor.name;
+    }
+    return typeof obj;
+}
+
+
+class  T1 {
+    name ? : string;
+}
+let cur :T1 ={
+
+}
+console.log(getTypeName(cur));
+
+let val = 33n;
+console.log(getTypeName(val));

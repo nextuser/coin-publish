@@ -1,26 +1,26 @@
 import { url } from "inspector"
 
 export type Config = {
-    template_package  : string,
+    ///template_package  : string,
     env:EnvName
 }
 
 const testnet_config : Config={
 
-    template_package : '0x6e058ff7361d09aedef2dd54c6a7f1c2ea21a0e7f392ec5ec47f37ce14873ddc',
+    ///template_package : '0x6e058ff7361d09aedef2dd54c6a7f1c2ea21a0e7f392ec5ec47f37ce14873ddc',
     env:'testnet'
 }
 
 
 const mainnet_config : Config={
 
-    template_package : 'todo',
+    //template_package : 'todo',
     env:'mainnet'
 }
 
 const devnet_config : Config={
 
-    template_package : 'todo',
+    //template_package : 'todo',
     env:'devnet'
 }
 

@@ -17,7 +17,7 @@ sui client publish | tee pub-testnet.out
 ```
  Published Objects:                                                                                        │
 │  ┌──                                                                                                      │
-│  │ PackageID: 0x772aa203264cb2fc80c2c36650cbe5790a04792c6a320eb1e5875720c48dbcd3                          │
+│  │ PackageID: 0xbe68a49f044066855d79bc09cd9a355f8f5c4da35a698e13ed306d05076ed386                          │
 │  │ Version: 1                                                                                             │
 │  │ Digest: 7fEvDcr1eUfBu2y8VFJ4wU1hxMF3npqjL199NPbnhYrh                                                   │
 │  │ Modules: coin_manager, inflat_supply, limit_supply, lock    
@@ -27,12 +27,12 @@ sui client publish | tee pub-testnet.out
 ##  coin_simpole
 修改 contracts/coin_manager/Move.toml
 ```toml
-coin_manager = "0x772aa203264cb2fc80c2c36650cbe5790a04792c6a320eb1e5875720c48dbcd3"
+coin_manager = "0xbe68a49f044066855d79bc09cd9a355f8f5c4da35a698e13ed306d05076ed386"
 ```
 
 修改 contracts/coin_simple/Move.toml
 ```toml
-coin_manager = "0x772aa203264cb2fc80c2c36650cbe5790a04792c6a320eb1e5875720c48dbcd3"
+coin_manager = "0xbe68a49f044066855d79bc09cd9a355f8f5c4da35a698e13ed306d05076ed386"
 ```
 
 ### 单元测试
@@ -40,6 +40,8 @@ coin_manager = "0x772aa203264cb2fc80c2c36650cbe5790a04792c6a320eb1e5875720c48dbc
 cd contracts/coin_simple
 sui move build
 sui move test
+
+./dump.sh
 
 ```
 
@@ -54,10 +56,8 @@ npx tsx publish.t.ts
 ```
   created_event: {
     meta_name: '袁大头',
-    minter: '0xf7ec2215e565b7a18d7b00e70fccda74b30c3ecceffb5857b1b3d2249e28e94f',
-    treasury_address: 'b4f32dd58dc542ea807d75a94f00bb49e9844e5505bc999c1bbe6c575dc14215',
-    type_name: 'a61b376a927d7cdd89053cd7f24347b1e0db39e70cc90a0089dfb585735652b3::ydt::YDT',
-    vault_address: '0xa4e993ed3064711abb0efdee475573b90a354baf76d6bbd25eec85afc20684cb'
+...
+    vault_address: '0xa2c5403b08db947544ca2b525218209725f20db785a5760bda178c00b619d640'
   },
 ```
 
@@ -65,8 +65,10 @@ npx tsx publish.t.ts
 ### typescript 测试buy 和test, 
 ```bash
 cd web/lib/test
-export COIN_MANAGER_PACKAGE=0x772aa203264cb2fc80c2c36650cbe5790a04792c6a320eb1e5875720c48dbcd3
-export VAULT=0xa4e993ed3064711abb0efdee475573b90a354baf76d6bbd25eec85afc20684cb
+export COIN_MANAGER_PACKAGE=`cat ../../../contracts/coin_manager/Move.toml |grep -v '#' |grep '^coin_manager' | awk -F '"' '{print($2)}'`
+
+export COIN_MANAGER_PACKAGE=0xbe68a49f044066855d79bc09cd9a355f8f5c4da35a698e13ed306d05076ed386
+export VAULT=0xa2c5403b08db947544ca2b525218209725f20db785a5760bda178c00b619d640
 npx tsx coin_info.t.ts
 
 ```
