@@ -1,4 +1,4 @@
-import { queryCreatedEvents , getSupply,getVault,getTypeByMeta } from "../coin_info";
+import { queryCreatedEvents , getSupply,getVault,getTypeByMeta,queryTransferEvents } from "../coin_info";
 import {get_buy_amount,get_sell_amount} from '../coin_curve'
 import {getSigner,getLocalSigner} from '../sui/local_key';
 import { SuiClient,getFullnodeUrl,GasCostSummary,TransactionEffects,SuiEvent } from '@mysten/sui/client';
@@ -10,10 +10,14 @@ import { getCost } from "../sui/sui_client";
 import { CoinTransferEvent } from "../types";
 import dotenv from 'dotenv';
 import { Tiro_Devanagari_Hindi } from "next/font/google";
+
 dotenv.config();
 function get_event(events : SuiEvent[] , tname: string) : unknown | null{
     for( let e of events ){
+        console.log('get_evnet: type , tname', e.type, tname);
+        console.log(e);
         if(e.type.indexOf(tname) >= 0){
+
             return e.parsedJson ;
         }
     }
@@ -159,10 +163,10 @@ async function test_sell(){
     });
 
     let event = getTransferEvent(result.events!);
-    console.log("event:",event);
+    console.log("transfer event:",event);
     console.log("---sell cost:", getCost(result.effects?.gasUsed!));
-
-    console.log("--sell  :result to execute:",result);
+    
+    //console.log("--sell  :result to execute:",result);
     
     
 }
@@ -173,4 +177,34 @@ async function test(){
     await test_sell();
 }
 
+function get_vault_addr() : string{
+    let vault_addr = process.env.VAULT
+    if(vault_addr == null || vault_addr.length == 0){
+        console.log("export VAULT first");
+        process.exit(-1)
+    }
+    return vault_addr;
+}
+async function query_events(){
+
+    const suiClient = new SuiClient({ url: getFullnodeUrl('testnet') }); 
+    let signer = getLocalSigner();
+    
+
+    let vault = await getVault(suiClient,get_vault_addr());
+    let coin_type = getTypeByMeta(vault!.meta.type);
+    //export  async function queryTransferEvents(suiClient : SuiClient, coin_type : string) : Promise<CoinTransferEvent[]>
+    let events = await queryTransferEvents(suiClient, coin_type);
+    console.log("s0 ,token_amount ,sui, from ->  to,  ")
+    events.forEach((e)=>{
+        console.log(Number(e.token_before_transfer)/Number(vault!.token_decimals_value),
+                    Number(e.token_amount)/Number(vault!.token_decimals_value) , 
+                    Number(e.sui_amount)/Number(vault!.sui_decimals_value),
+                    e.token_from, e.token_to);
+        //console.log( Number(e.coin_type_name));
+    })
+}
+
 test();
+
+query_events();

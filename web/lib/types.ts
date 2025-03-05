@@ -8,6 +8,7 @@ export type CoinCreatedEvent ={
 
 export type CoinTransferEvent ={
     coin_type_name : string,
+    token_before_transfer : string,
     token_from : string,
     token_to : string,
     token_amount : bigint,

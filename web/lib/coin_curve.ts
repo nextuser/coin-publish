@@ -70,3 +70,29 @@ export function get_sell_amount(s0 : number, delta : number) :[number,number]{
 }
 
 
+/*    pow(10,n) = 10 ^ n     pow(10,6) => 1000_000
+
+td: token.decimals
+sd : sui.decimals
+tdv : pow(10, td) 
+sdv : pow(10,sd)
+
+S = s * pow(10,token.decimals) =  s * tdv
+sp0 = s0 * pow(10,token.decimals) = s0 * tdv
+sp1 = s1 * pow(10,token.decimals) = s1 * tdv
+
+
+ tv1 - tv0 = k *  (s1 + s0) ( s1 - s0) + c * (s1 - s0)
+ 增长的sui : A = tv1 - tv0
+ 增长的mist AM = A * sdv
+ 因为move输入参数,都是以 S *  tdv , sui 也是以mist为单位
+  A = k * (sp1/tdv + sp0/tdv) (sp1/tdv - sp0/tdv)  + c * (sp1/tdv - sp0/tdv)
+  A = k * (sp1 *sp1 - sp0 * sp0)/ (tdv * tdv)  +  c * (sp1 - sp0) / tdv
+  A * tdv * tdv  = k * (sp1 * sp1 - sp0 * sp0) + c* tdv * (sp1 - sp0)
+  A = [k * (sp1 * sp1 - sp0 * sp0) + c* tdv * (sp1 - sp0)] / (tdv * tdv)
+  AM =  [k * (sp1 * sp1 - sp0 * sp0) + c* tdv * (sp1 - sp0)] * sdv / (tdv * tdv)
+  
+*/
+
+
+

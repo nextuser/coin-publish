@@ -1,6 +1,6 @@
 import { fromBase64,fromHex,toHex } from '@mysten/bcs';
 import { SuiClient,getFullnodeUrl,GasCostSummary } from '@mysten/sui/client';
-import { CoinCreatedEvent , CurveVault } from './types';
+import { CoinCreatedEvent , CoinTransferEvent, CurveVault } from './types';
 
 import dotenv from 'dotenv';
 dotenv.config();
@@ -9,6 +9,29 @@ const mananger_package = process.env.COIN_MANAGER_PACKAGE || '';
 if(!mananger_package || mananger_package.length == 0){
     console.log('COIN_MANAGER_PACKAGE is not set');
     process.exit(1);
+}
+
+export  async function queryTransferEvents(suiClient : SuiClient, coin_type : string) : Promise<CoinTransferEvent[]>
+{   
+    const eventType = `${mananger_package}::coin_manager::CoinTransferEvent`;
+    let events = await suiClient.queryEvents({
+        query:{
+            MoveEventType: eventType,
+        }
+    })  
+    let  transfer_events :CoinTransferEvent[] = [];
+    console.log("query coin_type:",coin_type);
+    events.data.forEach((item)=>{
+        let e = item.parsedJson as CoinTransferEvent;
+        //console.log("CoinTransferEvent:",e);
+        //console.log("CoinTransferEvent  ",e.coin_type_name)
+       // console.log("CoinTransferEvent  ", coin_type);
+        
+        if(coin_type.endsWith(e.coin_type_name )){
+             transfer_events.push(e);
+        }
+    })
+    return transfer_events;
 }
 export async function queryCreatedEvents(suiClient:SuiClient,owner:string) : Promise<Array<CoinCreatedEvent>>{
     const eventType = `${mananger_package}::coin_manager::CoinCreatedEvent`;
@@ -38,7 +61,9 @@ export function getTypeByMeta(meta_name : string){
     console.log('meta_name',meta_name);
     let start = meta_name.indexOf("<");
     let end = meta_name.indexOf(">")
-    return meta_name.substring(start + 1 ,end)
+    let type = meta_name.substring(start + 1 ,end);
+    console.log("meta=>type",meta_name, type);
+    return type
 }
 
 export async function getVault(suiClient:SuiClient,vault : string) : Promise<CurveVault | null>{
