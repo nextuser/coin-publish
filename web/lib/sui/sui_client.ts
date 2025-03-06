@@ -16,7 +16,8 @@ const client = new SuiClient({ url: getFullnodeUrl(config.env) });
 // })
 
 
-export function getCost(gasUsed:GasCostSummary) : bigint{
+export function getCost(gasUsed?:GasCostSummary) : bigint{
+	if(!gasUsed) return 0n;
     return BigInt(gasUsed.computationCost) + BigInt(gasUsed.storageCost)    - BigInt(gasUsed.storageRebate);
 }
 

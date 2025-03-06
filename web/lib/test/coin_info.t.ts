@@ -90,7 +90,7 @@ async function test_buy(){
     });
     let event = getTransferEvent(result.events!);
     console.log("---buy event:",event);
-    console.log("---buy cost:", getCost(result.effects?.gasUsed!));
+    console.log("---buy cost:", getCost(result.effects?.gasUsed));
     //console.log("result to execute:",result);
 
 }
@@ -164,7 +164,7 @@ async function test_sell(){
 
     let event = getTransferEvent(result.events!);
     console.log("transfer event:",event);
-    console.log("---sell cost:", getCost(result.effects?.gasUsed!));
+    console.log("---sell cost:", getCost(result.effects?.gasUsed));
     
     //console.log("--sell  :result to execute:",result);
     

@@ -171,9 +171,9 @@ sp1 = s1 * pow(10,token.decimals) = s1 * tdv
   AM =  [k * (sp1 * sp1 - sp0 * sp0) + c* tdv * (sp1 - sp0)] * sdv / (tdv * tdv)
   
 */
-const K : u128 = 100; // 放大1e18 倍
-const C : u128 = 28_000_000_000; // 放大1e18 倍
-const AMPLIFY : u128 = 1_000_000_000_000_000_000; // 放大1e18 倍
+const K : u128 = 1; // 放大1e16 倍
+const C : u128 = 280_000_000; // 放大1e16 倍
+const AMPLIFY : u128 = 10_000_000_000_000_000; // 放大1e16 倍
 //const SUI_AMPLIFY : u64 = 1_000_000_000;
 const ERR_NO_NOUGH_BALANCE : u64 = 1;
 
@@ -259,6 +259,7 @@ entry public fun entry_sell<T>(token : Coin<T>,vault : &mut CurveVault<T>,ctx : 
 
     let curve_address = object::id(vault).to_address();
     let coin_type_name = std::type_name::get<T>().into_string();  
+    
     emit(CoinTransferEvent{
         token_before_transfer : sp0,
         coin_type_name : coin_type_name ,

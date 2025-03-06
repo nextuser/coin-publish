@@ -103,3 +103,8 @@ fun test_coin_crate(){
 //     abort ENotImplemented
 // }
 
+#[test]
+fun test_type_name(){
+    let coin_type_name = std::type_name::get<coin_simple::template::TEMPLATE>();
+    log(b"test_type_name coin_type:",&coin_type_name);
+}
