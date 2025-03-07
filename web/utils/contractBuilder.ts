@@ -31,9 +31,8 @@ async function buildAndPublishPackage(env: Env = 'testnet',basepath: string = '.
         const { modules = [], dependencies = [] } = output ? JSON.parse(output) : {};
 
         // Log the build output for debugging
-        console.log('Build output:', output);
-
-        console.log('Publishing...');
+        // console.log('Build output:', output);
+        // console.log('Publishing...');
 
         const tx = new Transaction();
         const [upgradeCap] = tx.publish({ modules, dependencies });
@@ -50,7 +49,7 @@ async function buildAndPublishPackage(env: Env = 'testnet',basepath: string = '.
 
         await suiClient.waitForTransaction({ digest: result.digest });
 
-        console.log('Result: ', JSON.stringify(result, null, 2));
+        ////console.log('publish Result: ', JSON.stringify(result, null, 2));
 
         if (result.effects?.status?.status !== 'success') {
             console.log('\n\nPublishing failed');
@@ -66,7 +65,7 @@ async function buildAndPublishPackage(env: Env = 'testnet',basepath: string = '.
             options: { showContent: true, showType: true, showOwner: true },
         });
 
-        console.log(createdObjects);
+        console.log("contract builder:",createdObjects);
         const objects = createdObjects.reduce<Record<string, string>>((acc, item) => {
             if (!item.data) return acc;
 

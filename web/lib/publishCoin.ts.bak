@@ -177,11 +177,13 @@ async function publishCoin(params : PublishCoinParams){
 
     // createdObjects.for
     // )
+    console.log("---------------------publishCoin :created objects:");
     createdObjects.forEach((item) => {
         if(item.data){
             console.log(item.data.objectId,item.data.type,item.data.owner);
         }
     })
+    console.log("--------------------- object changes:",result.objectChanges);
     if(result.objectChanges){
         result.objectChanges.forEach((item) =>{
             if(item.type == 'published'){
@@ -192,7 +194,8 @@ async function publishCoin(params : PublishCoinParams){
         })
 
     }
-
+    
+    console.log("--------------------- suiClient.queryEvents:");
     let eventsDigest = result.effects.eventsDigest;
     if(eventsDigest){
         suiClient.queryEvents({query:{Transaction : result.digest }}).then((events)=>{

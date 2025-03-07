@@ -15,5 +15,4 @@ async function test_publish(){
     console.log("publish result:",publishResult);
 }
 
-
 test_publish();

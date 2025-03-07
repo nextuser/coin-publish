@@ -70,11 +70,10 @@ export async function publishCoin(params : PublishCoinParams, operator :string) 
     let publishResult : PublishResult = {};
     //let version = template.version();
     //console.log(version);
-    console.log("publish coin");
+    //console.log("publish coin");
 
     let [bytecode,deps] = readCoinTemplateBytes();
-    console.log("bytecode length :",bytecode.length);
-
+    //console.log("bytecode length :",bytecode.length);
     
     let jsonRet = template.deserialize(bytecode);
     let bytes = template.serialize(jsonRet);

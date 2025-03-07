@@ -21,7 +21,7 @@ export function getSigner(): Ed25519Keypair{
         exit("no MNEMNIC environment variable")
     } 
     let signer = Ed25519Keypair.deriveKeypair(mnemonic);
-    console.log(`signer.address=${signer.toSuiAddress}`);
+    ///console.log(`signer.address=${signer.toSuiAddress()}`);
     return signer;
 }
 /**
@@ -66,7 +66,7 @@ export function getLocalSigner(): Ed25519Keypair{
     let secretKey = get_key();
     const secretKeyBytes = fromBase64(secretKey).slice(1)
     let signer = Ed25519Keypair.fromSecretKey(secretKeyBytes);
-    console.log(`signer.address=${signer.toSuiAddress()}`);
+    //console.log(`signer.address=${signer.toSuiAddress()}`);
     return signer;
 }
 

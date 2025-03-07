@@ -1,101 +1,68 @@
-import { queryCreatedEvents , getSupply,getVault,getTypeByMeta,queryTransferEvents } from "../coin_info";
+import { queryCreatedEvents , getSupply,getVault,getTypeByMeta,queryTransferEvents, Sell } from "../coin_info";
+import { CoinTransferEvent,CoinCreatedEvent, CurveVault } from "../types";
 import {get_buy_amount,get_sell_amount} from '../coin_curve'
 import {getSigner,getLocalSigner} from '../sui/local_key';
 import { SuiClient,getFullnodeUrl,GasCostSummary,TransactionEffects,SuiEvent } from '@mysten/sui/client';
 import { test_env as env } from "../sui/config";
 import { Transaction } from "@mysten/sui/transactions";
 import { sign } from "crypto";
-import { CoinCreatedEvent } from "../types";
 import { getCost } from "../sui/sui_client";
-import { CoinTransferEvent } from "../types";
 import dotenv from 'dotenv';
-import { Tiro_Devanagari_Hindi } from "next/font/google";
-
+import { buy ,sell} from "../coin_info";
+import { exit } from "process";
 dotenv.config();
-function get_event(events : SuiEvent[] , tname: string) : unknown | null{
-    for( let e of events ){
-        console.log('get_evnet: type , tname', e.type, tname);
-        console.log(e);
-        if(e.type.indexOf(tname) >= 0){
 
-            return e.parsedJson ;
-        }
+function show_transfer_event(e : CoinTransferEvent|null,vault :CurveVault | null , fee : bigint){
+    if(e == null || vault == null){
+        console.log("show_transfer_event invalid arg e=",e,'vault=',vault);
     }
-    return null;
+    else{
+        console.log(Number(e.token_before_transfer)/Number(vault!.token_decimals_value),
+                    Number(e.token_amount)/Number(vault!.token_decimals_value) , 
+                    Number(e.sui_amount)/Number(vault!.sui_decimals_value),
+                    fee,
+                    e.token_from, 
+                    e.token_to);
+    }
 }
 
-function getTransferEvent(events : SuiEvent[]|null) : CoinTransferEvent|null{
-    if(events == null) return null;
 
-    let event = get_event(events,'CoinTransferEvent');
-    if(event != null){
-        return event as CoinTransferEvent;
-    }
-    return null;
-}
-
-async function test_buy(){
+const suis = [
+    0.0281,
+    0.071062962,
+    0.020565808,
+    0.021175667,
+    0.021282926,
+    0.052335967,
+    0.052973467,
+    0.021387863
+    ];
+async function test_buy() : Promise<bigint[]>{
     console.log("------------------------test_buy---------------------");
     const suiClient = new SuiClient({ url: getFullnodeUrl('testnet') }); 
     let signer = getLocalSigner();
-    let owner = signer.getPublicKey().toSuiAddress();
-    let events = await queryCreatedEvents(suiClient,owner);
-    let sui_amount = 28100000;
-    if(events.length == 0){
-        console.log("not find when call queryCreatedEvents ");
-        return ;
-    }
-
-
     let vault_addr = process.env.VAULT
     if(vault_addr == null || vault_addr.length == 0){
-        vault_addr = events[0].vault_address;
+        console.log("export VAULT first ");
+        process.exit(-1);
     }
-    let vault = await getVault(suiClient,vault_addr);
-    if(vault == null){
-        console.log("find vault fain for :",vault_addr);
-        return;
+    let token_numbers :bigint[] = [];
+    for( let i = 0 ; i < suis.length; ++ i){
+        let sui_amount = suis[i] * 1e9;
+        const  [event , cost , vault ] = await buy(suiClient,signer,vault_addr,sui_amount  );
+        console.log("transefer:",sui_amount);
+        show_transfer_event(event,vault,cost);
+        if(event) {
+             token_numbers.push(event?.token_amount);
+        } else{
+            console.log("event is null for sui_amount,token_amount",sui_amount,event );
+        }
     }
-    let supplied_token = getSupply(vault);
-    console.log("vault supplied_token=",supplied_token);
-
-    let [token_amount,_] = get_buy_amount(Number(supplied_token),sui_amount/1e9);
-    token_amount = token_amount * (10** vault.meta.fields.decimals);
-    console.log("token amount:",token_amount);
-    let tx = new Transaction();
-    let [new_coin] = tx.splitCoins(tx.gas, [tx.pure.u64(sui_amount)]);
-    tx.setGasBudget(1000000000);
-    let type_name = getTypeByMeta(vault.meta.type);
-    console.log('coin type name from meta:',type_name);
-    //entry fun Buy<T>(mut pay : Coin<SUI>, target_amount :u64,vault : &mut CurveVault<T>,ctx : &mut TxContext )
-    tx.moveCall({
-        target : `${process.env.COIN_MANAGER_PACKAGE}::coin_manager::entry_buy`,
-        arguments : [
-            new_coin,
-            tx.pure.u64(Math.floor(token_amount)),
-            tx.object(vault_addr)
-        ],
-        typeArguments:[type_name]
-    });
-
-    const result = await suiClient.signAndExecuteTransaction({
-        signer: signer,
-        transaction: tx,
-        options: {
-            showEffects: true,
-            ///showObjectChanges:true,
-            showEvents:true
-        },
-        requestType: 'WaitForLocalExecution',
-    });
-    let event = getTransferEvent(result.events!);
-    console.log("---buy event:",event);
-    console.log("---buy cost:", getCost(result.effects?.gasUsed));
-    //console.log("result to execute:",result);
-
+    return token_numbers;
 }
 
-async function test_sell(){
+
+async function test_sell(token_numbers : bigint []){
     console.log("------------------------test_sell---------------------");
     const suiClient = new SuiClient({ url: getFullnodeUrl('testnet') }); 
     let signer = getLocalSigner();
@@ -106,75 +73,21 @@ async function test_sell(){
         return;
     }
 
-
     let vault_addr = process.env.VAULT || ''
     if(( vault_addr.length == 0)){
         vault_addr = events[0].vault_address;
     }
-
-    let vault = await getVault(suiClient,vault_addr);
-    if(vault == null){
-        console.log("find vault fain for :",vault_addr);
-        return;
-    }
-    let supplied_token = getSupply(vault);
-    console.log("vault supplied_token=",supplied_token);
-
-    let type_name = getTypeByMeta(vault.meta.type);
-    let tokens = await  suiClient.getCoins({owner: owner,coinType : type_name})
-    if(tokens.data.length == 0 ){
-        console.log('no tokens of type',type_name);
-        return;
-    }
-
-    let token = tokens.data[0];
-    let tdv = Number(vault.token_decimals_value);
-    let token_amount = Number(token.balance) / tdv;
-    let tds = Number(vault.token_decimals_value);
-    let s0  = Number(supplied_token)/ tdv;
-    console.log('get_sell_amount(s0, token_amount)', s0,token_amount);
-    let [sui_amount ,_] = get_sell_amount(s0,token_amount)
-
-    console.log("--sell  :token amount,sui_amount:",token_amount,sui_amount);
-    let tx = new Transaction();
-    tx.setGasBudget(1000000000);
-    console.log("token",token);
-
-    //entry public fun --sell <T>(token : Coin<T>,vault : &mut CurveVault<T>,ctx : &mut TxContext )
-    tx.moveCall({
-        target : `${process.env.COIN_MANAGER_PACKAGE}::coin_manager::entry_sell`,
-        arguments : [
-            tx.object(token.coinObjectId),
-            tx.object(vault_addr)
-        ],
-        typeArguments:[type_name]
-    });
-    console.log("--sell  :expect sui",sui_amount * Number(vault.sui_decimals_value));
-
-    const result = await suiClient.signAndExecuteTransaction({
-        signer: signer,
-        transaction: tx,
-        options: {
-            showEffects: true,
-            ///showObjectChanges:true,
-            showEvents:true
-        },
-        requestType: 'WaitForLocalExecution',
-    });
-
-    let event = getTransferEvent(result.events!);
-    console.log("transfer event:",event);
-    console.log("---sell cost:", getCost(result.effects?.gasUsed));
-    
-    //console.log("--sell  :result to execute:",result);
-    
-    
+    console.log("token numbers:",token_numbers);
+    for(let i = token_numbers.length - 1; i >= 0; -- i){
+        const [event , cost, vault ] = await sell(suiClient,signer,signer.getPublicKey().toSuiAddress(),vault_addr,token_numbers[i]);
+        
+        show_transfer_event(event,vault,cost);
+    }    
 }
 
-
 async function test(){
-    await test_buy();
-    await test_sell();
+   let token_nums = await test_buy();
+    await test_sell( token_nums);
 }
 
 function get_vault_addr() : string{
@@ -190,7 +103,6 @@ async function query_events(){
     const suiClient = new SuiClient({ url: getFullnodeUrl('testnet') }); 
     let signer = getLocalSigner();
     
-
     let vault = await getVault(suiClient,get_vault_addr());
     let coin_type = getTypeByMeta(vault!.meta.type);
     //export  async function queryTransferEvents(suiClient : SuiClient, coin_type : string) : Promise<CoinTransferEvent[]>
@@ -207,4 +119,4 @@ async function query_events(){
 
 test();
 
-query_events();
+//query_events();

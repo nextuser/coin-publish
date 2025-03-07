@@ -87,7 +87,5 @@ class  T1 {
 let cur :T1 ={
 
 }
-console.log(getTypeName(cur));
 
 let val = 33n;
-console.log(getTypeName(val));

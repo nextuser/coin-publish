@@ -8,10 +8,10 @@ const client = new SuiClient({ url: getFullnodeUrl(config.env) });
 
 client.getObject({ id :config.template_package, options : { showBcs:true, showType:true} }).then((rsp )=>{
     if(rsp.error){
-        console.log('error:', rsp.error);
+        console.log('getObject error:', config.template_package ,rsp.error);
     }
     else{
-        console.log('rsp.data:',rsp.data);
+        ///console.log('rsp.data:',rsp.data);
     }
 })
 

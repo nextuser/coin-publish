@@ -34,13 +34,13 @@ function get_buy_amount(s0 :number, sui_amount:number) {
 
     let u = Math.sqrt( b**2  - 4*a*c) - b;
     let delta  = u/(2*K);
-    console.log('delta:',delta);
+    //console.log('delta:',delta);
     // 验算
     let  s1 = s0 + delta;
     let tv1 = K * s1 * s1 + C * s1;
     let tv0 = K * s0 * s0 + C * s0;
-    console.log('t0 t1',tv0,tv1);
-    console.log("tv1 - t0 vs delta", tv1 -  tv0, delta);
+    //console.log('t0 t1',tv0,tv1);
+    //console.log("tv1 - t0 vs delta", tv1 -  tv0, delta);
     return delta;
 }
 

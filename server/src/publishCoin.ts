@@ -75,7 +75,7 @@ async function publishCoin(params : PublishCoinParams, operator :string) : Promi
     console.log("publish coin");
 
     let [bytecode,deps] = coinTemplateBytes2();
-    console.log("bytecode length :",bytecode.length);
+    //console.log("bytecode length :",bytecode.length);
 
     
     let jsonRet = template.deserialize(bytecode);

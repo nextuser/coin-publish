@@ -23,7 +23,7 @@ function createBetterTxFactory<T extends Record<string, unknown>>(
 type Network = "mainnet" | "testnet"
 
 const network = (process.env.NEXT_PUBLIC_NETWORK as Network) || "testnet";
-
+const contractConfig = getContractConfig(network);
 const { networkConfig, useNetworkVariables } = createNetworkConfig({
     testnet: {
         url: getFullnodeUrl("testnet"),
@@ -38,6 +38,6 @@ const { networkConfig, useNetworkVariables } = createNetworkConfig({
 // 创建全局 SuiClient 实例
 const suiClient = new SuiClient({ url: networkConfig[network].url });
 
-export { getNetworkVariables, networkConfig, network, suiClient, createBetterTxFactory, useNetworkVariables };
+export { getNetworkVariables, networkConfig, network, contractConfig,suiClient, createBetterTxFactory, useNetworkVariables };
 export type { NetworkVariables };
 
