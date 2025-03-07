@@ -76,6 +76,10 @@ export async function getVault(suiClient:SuiClient,vault : string) : Promise<Cur
     if(content.dataType == 'moveObject'){
         ////console.log("fields",content.fields as unknown);
         let vault = content.fields as unknown as CurveVault ;
+        if(!content.type.startsWith(mananger_package)){
+            console.log("VAULT name conflict with COIN_MANAGER_PACKAGE vault.type",content.type, " package",mananger_package  );
+            process.exit(-1);
+        }
         ///console.log("vault :" ,vault);
         return vault;
     }
@@ -128,7 +132,7 @@ export async function buy(suiClient : SuiClient ,
 
         let supplied_token = getSupply(vault) ;
         //console.log("vault supplied_token=",supplied_token);
-        let tdv = 10** Number(vault.meta.fields.decimals);
+        let tdv = 10 ** Number(vault.meta.fields.decimals);
         let normalized_s0 = Number(supplied_token)/tdv;
         let [token_amount,_] = get_buy_amount(normalized_s0,sui_amount/1e9);
         token_amount = token_amount * tdv;
@@ -164,43 +168,71 @@ export async function buy(suiClient : SuiClient ,
         return [event ,getCost(result.effects?.gasUsed),vault]
 }
 
-export async function sell(suiClient : SuiClient, 
-                            keypair : Keypair,
-                            owner : string,
-                            vault_addr : string,
-                            token_num :bigint)
-                            : Promise<[CoinTransferEvent|null,bigint,CurveVault|null]>{
-    let vault = await getVault(suiClient,vault_addr);
-    const emp_result : [CoinTransferEvent|null,bigint,CurveVault|null] = [null,0n,vault]
-
-    if(vault == null){
-        console.log("find vault fain for :",vault_addr);
-        return emp_result;
-    }
-    let supplied_token = getSupply(vault);
-    //console.log("vault supplied_token=",supplied_token);
-
-    let type_name = getTypeByMeta(vault.meta.type);
-    let tokens = await  suiClient.getCoins({owner: owner,coinType : type_name})
+async function getTokenByAmount(suiClient : SuiClient,
+                                owner:string,
+                                coin_type :string, 
+                                token_amount : bigint) 
+                                :  Promise<CoinStruct|null>{
+    
+    let tokens = await  suiClient.getCoins({owner: owner,coinType : coin_type})
     if(tokens.data.length == 0 ){
-        console.log('no tokens of type',type_name);
-        return  emp_result;
+        console.log('no tokens of type',coin_type);
+        return  null;
     }
     
     let token: CoinStruct|null = null;
     for( let t of tokens.data){
-        if(BigInt(t.balance) == token_num){
+        if(BigInt(t.balance) == token_amount){
             token = t;
             break;
         }
     }
-    if(token == null){
-        console.log("");
+    return token;
+}
+
+
+export async function sell_by_amount(suiClient : SuiClient, 
+    keypair : Keypair,
+    owner : string,
+    vault_addr : string,
+    token_num :bigint)
+    : Promise<[CoinTransferEvent|null,bigint,CurveVault|null]>{
+ 
+    let vault = await getVault(suiClient,vault_addr);
+    const emp_result : [CoinTransferEvent|null,bigint,CurveVault|null] = [null,0n,vault]
+
+ 
+
+    if(vault == null ){
+        console.log("invalid args ,vault_addr:",vault_addr);
         return emp_result;
     }
+        
+    let type_name = getTypeByMeta(vault.meta.type);
+    let token = await getTokenByAmount(suiClient,owner,type_name, token_num);
+    return await sell(suiClient,keypair,owner,vault,token);
+}
+
+
+export async function sell(suiClient : SuiClient, 
+                            keypair : Keypair,
+                            owner : string,
+                            vault : CurveVault,
+                            token :CoinStruct|null)
+                            : Promise<[CoinTransferEvent|null,bigint,CurveVault|null]>{
+
+    const emp_result : [CoinTransferEvent|null,bigint,CurveVault|null] = [null,0n,vault]
+
+    
+    if(vault == null || token == null){
+        console.log("invalid args ,(vault,token):",vault,token);
+        return emp_result;
+    }
+    
     let tdv = Number(vault.token_decimals_value);
     let token_amount = Number(token.balance) / tdv;
     let tds = Number(vault.token_decimals_value);
+    let supplied_token = getSupply(vault);
     let s0  = Number(supplied_token)/ tdv;
     //console.log('get_sell_amount(s0, token_amount)', s0,token_amount);
     let [sui_amount ,_] = get_sell_amount(s0,token_amount)
@@ -215,9 +247,9 @@ export async function sell(suiClient : SuiClient,
         target : `${process.env.COIN_MANAGER_PACKAGE}::coin_manager::entry_sell`,
         arguments : [
             tx.object(token.coinObjectId),
-            tx.object(vault_addr)
+            tx.object(vault.id.id)
         ],
-        typeArguments:[type_name]
+        typeArguments:[token.coinType]
     });
     //console.log("--sell  :expect sui",sui_amount * Number(vault.sui_decimals_value));
 

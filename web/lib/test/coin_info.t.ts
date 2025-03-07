@@ -1,4 +1,4 @@
-import { queryCreatedEvents , getSupply,getVault,getTypeByMeta,queryTransferEvents, Sell } from "../coin_info";
+import { queryCreatedEvents , getSupply,getVault,getTypeByMeta,queryTransferEvents, Sell, sell_by_amount } from "../coin_info";
 import { CoinTransferEvent,CoinCreatedEvent, CurveVault } from "../types";
 import {get_buy_amount,get_sell_amount} from '../coin_curve'
 import {getSigner,getLocalSigner} from '../sui/local_key';
@@ -79,7 +79,7 @@ async function test_sell(token_numbers : bigint []){
     }
     console.log("token numbers:",token_numbers);
     for(let i = token_numbers.length - 1; i >= 0; -- i){
-        const [event , cost, vault ] = await sell(suiClient,signer,signer.getPublicKey().toSuiAddress(),vault_addr,token_numbers[i]);
+        const [event , cost, vault ] = await sell_by_amount(suiClient,signer,signer.getPublicKey().toSuiAddress(),vault_addr,token_numbers[i]);
         
         show_transfer_event(event,vault,cost);
     }    
