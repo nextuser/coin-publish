@@ -1,15 +1,15 @@
 -------object changes--------------
-cost -0.01491028
+cost -0.01393216
 publish result: {
-  publish_digest: '4oCuPuXnS2XddN8b69aEasps6dPmnXKcyBrVegVSmfze',
+  publish_digest: 'yRRwqyDpno6gA33JJZdSRYdGS87vXLiDjSxss2ENPgs',
   coin_type: '袁大头',
-  sui_cost: 14910280n,
+  sui_cost: 13932160n,
   created_event: {
     meta_name: '袁大头',
     minter: '0xf7ec2215e565b7a18d7b00e70fccda74b30c3ecceffb5857b1b3d2249e28e94f',
-    treasury_address: '0778bf0a5bbe4f2aaa7aaf04bfdc94ebfb56a362dfe973197f87f347e11a7c57',
-    type_name: 'd21c39d22420e29dd2355fbb0f70551b80eb8dbbaa646c8e570ae332c4b1935f::ydt::YDT',
-    vault_address: '0xf6346a79bbf308c0b9c262436abc95506734a9cd0a93c85aabb4a623669b07fd'
+    treasury_address: 'd996a9efc5943ec9d78c225686ed6d43ced69da2d096eeda57967e02b85bf194',
+    type_name: '2e2d3fd19db7edbfcd8439a7f1eceb71d0c124f235fbf2a483d5bc65ef74cc1e::ydt::YDT',
+    vault_address: '0x312ffeea3689aa260483331a64801d8731a9998a47e49e068d585292cb5b6a4d'
   },
   event_type: '0x571b4567a849b6c4b2d1d6fc129e95c914b667cf7841e3034e73485e8c708bec::coin_manager::CoinCreatedEvent'
 }

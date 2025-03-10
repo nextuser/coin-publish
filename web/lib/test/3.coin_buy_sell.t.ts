@@ -12,17 +12,33 @@ import { buy ,sell} from "../coin_info";
 import { exit } from "process";
 dotenv.config();
 
+function show_transfer_header(){
+    console.log(
+    's0',
+    'token_delta' , 
+    'sui',
+    'sui_delta',
+    'fee',
+    'from', 
+    'to', 
+    ); 
+}
 function show_transfer_event(e : CoinTransferEvent|null,vault :CurveVault | null , fee : bigint){
     if(e == null || vault == null){
         console.log("show_transfer_event invalid arg e=",e,'vault=',vault);
     }
     else{
-        console.log(Number(e.token_before_transfer)/Number(vault!.token_decimals_value),
-                    Number(e.token_amount)/Number(vault!.token_decimals_value) , 
-                    Number(e.sui_amount)/Number(vault!.sui_decimals_value),
+        let tdv = Number(vault!.token_decimals_value);
+        let sdv = Number(vault!.sui_decimals_value);
+        console.log(Number(e.token_before_transfer)/tdv,
+                    Number(e.token_amount)/tdv , 
+                    Number(vault.curve_money)/sdv,
+                    Number(e.sui_amount)/sdv,
                     fee,
                     e.token_from, 
-                    e.token_to);
+                    e.token_to, 
+                    
+                );
     }
 }
 
@@ -46,6 +62,7 @@ async function test_buy() : Promise<bigint[]>{
         console.log("export VAULT first ");
         process.exit(-1);
     }
+    show_transfer_header();
     let token_numbers :bigint[] = [];
     for( let i = 0 ; i < suis.length; ++ i){
         let sui_amount = suis[i] * 1e9;
@@ -77,10 +94,11 @@ async function test_sell(token_numbers : bigint []){
     if(( vault_addr.length == 0)){
         vault_addr = events[0].vault_address;
     }
+    
     console.log("token numbers:",token_numbers);
+    show_transfer_header()
     for(let i = token_numbers.length - 1; i >= 0; -- i){
         const [event , cost, vault ] = await sell_by_amount(suiClient,signer,signer.getPublicKey().toSuiAddress(),vault_addr,token_numbers[i]);
-        
         show_transfer_event(event,vault,cost);
     }    
 }
@@ -107,14 +125,13 @@ async function query_events(){
     let coin_type = getTypeByMeta(vault!.meta.type);
     //export  async function queryTransferEvents(suiClient : SuiClient, coin_type : string) : Promise<CoinTransferEvent[]>
     let events = await queryTransferEvents(suiClient, coin_type);
-    console.log("s0 ,token_amount ,sui, from ->  to,  ")
-    events.forEach((e)=>{
-        console.log(Number(e.token_before_transfer)/Number(vault!.token_decimals_value),
-                    Number(e.token_amount)/Number(vault!.token_decimals_value) , 
-                    Number(e.sui_amount)/Number(vault!.sui_decimals_value),
-                    e.token_from, e.token_to);
-        //console.log( Number(e.coin_type_name));
-    })
+    show_transfer_header();
+    if(events != null){
+        events.forEach((e)=>{
+            show_transfer_event(e,vault,0n);
+        });
+    }
+        
 }
 
 test();
