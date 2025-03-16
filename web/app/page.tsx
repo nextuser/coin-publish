@@ -5,7 +5,12 @@ import { getUserProfile } from '@/contracts/query'
 import { useCurrentAccount } from '@mysten/dapp-kit'
 import { useEffect, useState } from 'react'
 import { CategorizedObjects, calculateTotalBalance, formatBalance } from '@/utils/assetsHelpers'
-
+import Input1 from '@/components/input1'
+import Input2 from '@/components/input2'
+import ImageFileInput from '@/components/ImageFileInput'
+import CustomDialog from '@/components/CustomDialog'
+import Input3 from '@/components/input3'
+import CenteredDialog from '@/components/CenterDialog'
 export default function Home() {
   const account = useCurrentAccount();
   const [userObjects, setUserObjects] = useState<CategorizedObjects | null>(null);
@@ -25,8 +30,31 @@ export default function Home() {
     fetchUserProfile();
   }, [account]);
 
+
+  const [inputValue, setInputValue] = useState('');
+
+  const handleInputChange = (event:any) => {
+    setInputValue(event.target.value);
+  };
+
+  const handleClearInput = () => {
+    setInputValue('');
+  };
+
+  const [imageUrl,setImageUrl] = useState<string>('')
   return (
-    <div className="min-h-screen flex flex-col">
+    
+    <div >
+      <CenteredDialog></CenteredDialog>
+      <ImageFileInput setFileUrl={(url:string) => setImageUrl(imageUrl)} fileUrl={imageUrl}></ImageFileInput>
+      <CustomDialog></CustomDialog>
+      
+      <Input1 value={inputValue}
+          onClear= {()=>setInputValue('')}
+          onChange={handleInputChange}
+          placeholder="请输入input1内容"></Input1>
+      <Input2></Input2>
+      <Input3></Input3>
       <header className="flex justify-between items-center p-4 bg-white shadow-md">
         <div className="flex items-center rounded-full overflow-hidden">
           <Image src="/logo/logo.jpg" alt="Sui Logo" width={80} height={40} />

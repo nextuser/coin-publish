@@ -1,7 +1,7 @@
 import { fromBase64,fromHex,toHex } from '@mysten/bcs';
-import { SuiClient,getFullnodeUrl,GasCostSummary,SuiEvent,CoinStruct } from '@mysten/sui/client';
+import { SuiClient,getFullnodeUrl,GasCostSummary,SuiEvent,CoinStruct, MoveStruct } from '@mysten/sui/client';
 import { Transaction } from '@mysten/sui/transactions';
-import { CoinCreatedEvent , CoinTransferEvent, CurveVault } from './types';
+import { CoinCreatedEvent , CoinTransferEvent, CurveVault ,MStruct} from './types';
 import dotenv from 'dotenv';
 import { getCost } from './sui/sui_client';
 import { Keypair } from "@mysten/sui/cryptography";
@@ -13,7 +13,7 @@ dotenv.config();
 const mananger_package = process.env.COIN_MANAGER_PACKAGE || '';
 if(!mananger_package || mananger_package.length == 0){
     console.log('COIN_MANAGER_PACKAGE is not set');
-    process.exit(1);
+    ///process.exit(1);
 }
 
 export  async function queryTransferEvents(suiClient : SuiClient, coin_type : string) : Promise<CoinTransferEvent[]>
@@ -91,7 +91,7 @@ export  function getSupply(vault :CurveVault) : bigint{
     return BigInt(vault.total_supply.fields.value) - BigInt(vault.curve_balance);
 }
 
-function get_event(events : SuiEvent[] , tname: string) : unknown | null{
+function filter_events(events : SuiEvent[] , tname: string) : unknown | null{
     for( let e of events ){
         if(e.type.indexOf(tname) >= 0){
 
@@ -104,7 +104,7 @@ function get_event(events : SuiEvent[] , tname: string) : unknown | null{
 function getTransferEvent(events : SuiEvent[]|null) : CoinTransferEvent|null{
     if(events == null) return null;
 
-    let event = get_event(events,'CoinTransferEvent');
+    let event = filter_events(events,'CoinTransferEvent');
     if(event != null){
         return event as CoinTransferEvent;
     }
@@ -266,6 +266,39 @@ export async function sell(suiClient : SuiClient,
 
     let event = getTransferEvent(result.events!);
     return[event ,getCost(result.effects?.gasUsed),vault];
+}
+
+import { getSuiConfig } from './sui/sui_config';
+export async function queryCoinVaults(suiClient :SuiClient): Promise < CurveVault[]>{
+    let suiConfig = await getSuiConfig();
+
+    const eventType = `${suiConfig.coin_manager_pkg}::coin_manager::CoinCreatedEvent`;
+    let events_result = await suiClient.queryEvents({
+        query:{
+            MoveEventType: eventType,
+        }
+    })  
+    let vault_ids = [];
+    for(let e of events_result.data){
+        const ce = e.parsedJson as CoinCreatedEvent;
+        vault_ids.push(ce.vault_address);
+    }
+
+    const  valut_results = await suiClient.multiGetObjects({
+        ids: vault_ids,
+        options: {
+            showContent : true
+        }
+    })
+    let ret =[];
+    for(let v of valut_results){
+        let c = v.data?.content as unknown as MStruct<CurveVault>;
+        //console.log("valut:", v.data?.content as unknown)
+        ret.push(c.fields)
+    }
+
+    return ret;
+
 }
 
 

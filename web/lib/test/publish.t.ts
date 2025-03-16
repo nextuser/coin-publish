@@ -8,11 +8,10 @@ async function test_publish(){
         symbol : "YDT",
         decimal: 7,
         desc: "袁大头是一个有趣的代币",
-        initialSupply : "1000000000000000000",
         imageUrl : "https://img.alicdn.com/bao/uploaded/i4/2211353769366/O1CN01LfIYel2J3gPxGbQws_!!0-item_pic.jpg" 
     },OPERATOR);
 
     console.log("publish result:",publishResult);
 }
-
+console.log("import.meta.dirname in publish",import.meta.dirname);
 test_publish();

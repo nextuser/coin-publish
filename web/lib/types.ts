@@ -1,3 +1,5 @@
+import { stringify } from "querystring"
+
 export type CoinCreatedEvent ={
     vault_address : string,
     type_name : string,
@@ -28,7 +30,7 @@ type Supply = {
     value : string,
 }
 
-type MStruct<T> = {
+export type MStruct<T> = {
     type : string,
     fields : {
         [P in keyof T] : T[P]
@@ -80,6 +82,62 @@ function getTypeName<T>(obj: T): string {
     return typeof obj;
 }
 
+
+export type CointCreatedEvent ={
+    vault_address : string,
+    type_name : string,
+    meta_name : string,
+    minter    : string,
+    treasury_address : string,
+}
+
+export type PublishCoinParams =  {
+    module_name:string,
+    coin_name : string,
+    symbol :string ,
+    decimal:number,
+    desc:string ,
+    imageUrl? : string
+}
+
+
+export type MintForm ={
+    name: string,
+    symbol: string,
+    description: string,
+    image: string,
+    decimals:string,
+}
+
+
+export type  PublishResult = {
+    coin_package_id? : string,
+    coin_type? : string,
+    vault_id? : string,
+    publish_digest? : string,
+    sui_cost ? :string,
+    upgrade_cap? : string,
+    created_event? : CoinCreatedEvent,
+    event_type ? : string,
+    errMsg ? : string,
+    isSucc : boolean
+}
+
+
+export type  PublishedBody = {
+    message : string,
+    publish_info? : PublishResult
+
+}
+
+export type HttpPublishResponse = {
+    body : PublishedBody
+    options: {
+        //headers?: Headers;
+        status?: number;
+        statusText?: string;
+    }
+}
 
 class  T1 {
     name ? : string;

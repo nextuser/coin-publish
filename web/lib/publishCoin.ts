@@ -2,8 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import { bcs } from '@mysten/bcs';
 //import bytecode_template from '@mysten/move-bytecode-template/move_bytecode_template/move_bytecode_template';
-import * as template from  '../pkg';
-
+//import * as template from  'move-bytecode-template';
+import * as template from '../pkg';
 import { assert } from 'console';
 import { Transaction } from '@mysten/sui/transactions';
 import {getSigner,getLocalSigner} from './sui/local_key';
@@ -13,61 +13,45 @@ import { test_env as env } from "./sui/config";
 import { threadId } from 'worker_threads';
 import dotenv from 'dotenv'
 import { getCost } from './sui/sui_client';
-
+import { CoinCreatedEvent,PublishCoinParams,PublishResult,HttpPublishResponse } from './types';
+import { types } from 'util';
 type DumpFormat ={
     modules : string[],
     dependencies:string[],
     digest : Uint8Array[]
 }
 
-type CointCreatedEvent ={
-    vault_address : string,
-    type_name : string,
-    meta_name : string,
-    minter    : string,
-    treasury_address : string,
-}
-
-type PublishCoinParams =  {
-    module_name:string,
-    coin_name : string,
-    symbol :string ,
-    decimal:number,
-    desc:string ,initialSupply : string, imageUrl? : string
-}
-
+import module_bytes from './out.json'
+import { responseCookiesToRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies';
 function readCoinTemplateBytes() : [ Uint8Array,string[]]{
-    let file = path.resolve(__dirname, '../../contracts/coin_simple/out.json');
-    let json = JSON.parse(String(fs.readFileSync(file))) as DumpFormat;
-    let bytecode : Uint8Array =  fromBase64(json.modules[0]);
+    //let file = path.resolve(__dirname, './out.json');
+    //let json = JSON.parse(String(fs.readFileSync(file))) as DumpFormat;
+    let bytecode : Uint8Array =  fromBase64(module_bytes.modules[0]);
     ///console.log("readCoinTemplateBytes hex:",toHex(bytecode));
-    return [bytecode,json.dependencies];
+    return [bytecode,module_bytes.dependencies];
 }
 
 
-type   CoinCreatedEvent={
-    meta_name: string,
-    minter: string,
-    treasury_address:string, 
-    type_name: string
-}
 
-type  PublishResult = {
-    coin_package_id? : string,
-    coin_type? : string,
-    vault_id? : string,
-    publish_digest? : string,
-    sui_cost ? :bigint,
-    upgrade_cap? : string,
-    created_event? : CoinCreatedEvent,
-    event_type ? : string,
 
+export function getPublishHttpResponse(  publish_info: PublishResult) : HttpPublishResponse{
+    const response : HttpPublishResponse = {
+        body : {  message : publish_info.errMsg || "success" ,
+                  publish_info
+               },
+        options : {
+            status : publish_info.isSucc ? 200 : 500,
+            statusText : publish_info.errMsg
+        }
+    }   
+    return response;
 }
 
 
+const INITIAL_SUPPLY = 1000_000_000;
 export async function publishCoin(params : PublishCoinParams, operator :string) : Promise<PublishResult>{
 
-    let publishResult : PublishResult = {};
+    let publishResult : PublishResult = {isSucc:true};
     //let version = template.version();
     //console.log(version);
     //console.log("publish coin");
@@ -78,6 +62,13 @@ export async function publishCoin(params : PublishCoinParams, operator :string) 
     let jsonRet = template.deserialize(bytecode);
     let bytes = template.serialize(jsonRet);
     assert(bytes.length == bytecode.length);
+
+    if(params.decimal < 0 || params.decimal > 10 || params.decimal != Math.floor(params.decimal)){
+        return {
+            isSucc: false,
+            errMsg: `decimal: ${params.decimal} should in [0..10] `
+        } 
+    }
     // console.log("jsonRet",jsonRet);
     // console.log("bytes ",bytes);
     // console.log("bytecodes ",json.modules[0]);
@@ -139,7 +130,7 @@ export async function publishCoin(params : PublishCoinParams, operator :string) 
        // Update URL
     updated = template.update_constants(
         updated,
-        bcs.u64().serialize(params.initialSupply).toBytes(), // new value
+        bcs.u64().serialize(INITIAL_SUPPLY).toBytes(), // new value
         bcs.u64().serialize('1000000').toBytes(), // current value
         'U64', // type of the constant
     );
@@ -172,20 +163,23 @@ export async function publishCoin(params : PublishCoinParams, operator :string) 
 
 
     let response  = await suiClient.waitForTransaction({ digest: result.digest });
-    // console.log("---------------response--------------",response);
-    // console.log("digest:",result.digest);
+    console.log("---------------response--------------",response);
+    console.log("digest:",result.digest);
     publishResult.publish_digest = result.digest;
     publishResult.coin_type = params.coin_name;
     
     if (result.effects?.status?.status !== 'success') {
         // console.log('\n\nPublishing failed');
-        return publishResult;
+        return {
+            isSucc:false,
+            errMsg : result.effects?.status?.error
+        };
     } else{
         // console.log("publish succeed ");
     }
 
     // console.log("-------------------published result :\n",result);
-    publishResult.sui_cost = getCost(result.effects!.gasUsed!);
+    publishResult.sui_cost = String(getCost(result.effects!.gasUsed!));
 
     // const createdObjectIds = result.effects.created!.map(
     //     (item) => {
@@ -238,7 +232,6 @@ export async function publishCoin(params : PublishCoinParams, operator :string) 
                 publishResult.event_type = item.type;
             }
         });
-        
     }
 
     let newbalance = await suiClient.getBalance({owner:signer.getPublicKey().toSuiAddress()})
