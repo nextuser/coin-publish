@@ -84,8 +84,10 @@ fun init(ctx : &mut TxContext){
 }
 
 const SUI_DECIMALS : u8 = 9;
-
+//const TOKEN_FOR_CREATOR : u64 = 1000_000;
+#[allow(lint(self_transfer))]
 public fun register_coin<T >( treasury: TreasuryCap<T>, meta : CoinMetadata<T>, ctx : &mut TxContext  ){
+    let creator = ctx.sender();
     let treasury_addr = sui::object::id(&treasury).to_address().to_ascii_string();
     let type_name = std::type_name::get<T>();
     let name = type_name.borrow_string();
@@ -93,11 +95,13 @@ public fun register_coin<T >( treasury: TreasuryCap<T>, meta : CoinMetadata<T>, 
     
     let mut supply = treasury.treasury_into_supply();
     let token_decimals_value = pow(10,meta.get_decimals() ) ;
-    let balance = supply.increase_supply(INIT_SUPPLY * token_decimals_value);
+    let  balance = supply.increase_supply(INIT_SUPPLY * token_decimals_value);
+    // let coin = balance::split(&mut balance,TOKEN_FOR_CREATOR).into_coin(ctx);
+    // transfer::public_transfer(coin,creator);
     let vault = CurveVault<T>{
         
         id : sui::object::new(ctx ),
-        coin_creator : ctx.sender(),
+        coin_creator : creator,
         total_supply : supply,
         meta:meta,
         curve_balance : balance,
@@ -110,7 +114,7 @@ public fun register_coin<T >( treasury: TreasuryCap<T>, meta : CoinMetadata<T>, 
         vault_address : object::id(&vault).to_address(),
         type_name : * name,
         meta_name : meta_name,
-        minter : ctx.sender(),
+        minter : creator,
         treasury_address: treasury_addr
     });
 
@@ -135,35 +139,40 @@ totoal value
   S =  total_supply - curve_balance
 一直 s0, k,c, tv0
 已知 新购买的钱 (tv1 - tv0), 求新增可以购买的代币两 s1-s0
-   EQ1:tv1 = k *  sp1 * sp1 + c * sp1
-   tm1 = tv1 * sdv
-   A = sui_amount = tv1 - tv0
+   -  EQ1:tv1 = k *  sp1 * sp1 + c * sp1
+   - tm1 = tv1 * sdv
+   - A = sui_amount = tv1 - tv0  
+   这里A 是变动供应量之后获得的SUI数目
    x = token_amount = s1 - s0
 
 将 EQ1-EQ0 获得
+```
    tv1 - tv0 = k *  (s1 + s0) ( s1 - s0) + c * (s1 - s0)
     x = s1 - s0
     A = k * (x + s0 + s0 ) * x  + c * x
     A = k * x^2 + 2*k*s0*x + c*x
     k * x*x + (2*k*s0 + c)*x - A = 0
+```
 
 
     pow(10,n) = 10 ^ n     pow(10,6) => 1000_000
 
-td: token.decimals
-sd : sui.decimals
-tdv : pow(10, td) 
-sdv : pow(10,sd)
+## 变量定义
+- td: token.decimals
+- sd : sui.decimals
+- tdv : pow(10, td) 
+- sdv : pow(10,sd)
 
-S = s * pow(10,token.decimals) =  s * tdv
-sp0 = s0 * pow(10,token.decimals) = s0 * tdv
-sp1 = s1 * pow(10,token.decimals) = s1 * tdv
+- sp = s * pow(10,token.decimals) =  s * tdv
+- sp0 = s0 * pow(10,token.decimals) = s0 * tdv
+- sp1 = s1 * pow(10,token.decimals) = s1 * tdv
 
+## 原有公式:
+ $$ tv1 - tv0 = k *  (s1 + s0) ( s1 - s0) + c * (s1 - s0) $$
 
- tv1 - tv0 = k *  (s1 + s0) ( s1 - s0) + c * (s1 - s0)
  增长的sui : A = tv1 - tv0
  增长的mist AM = A * sdv
- 因为move输入参数,都是以 S *  tdv , sui 也是以mist为单位
+ 因为move输入token参数,都是以 S *  tdv , sui 也是以mist为单位,即  A * sdv
   A = k * (sp1/tdv + sp0/tdv) (sp1/tdv - sp0/tdv)  + c * (sp1/tdv - sp0/tdv)
   A = k * (sp1 *sp1 - sp0 * sp0)/ (tdv * tdv)  +  c * (sp1 - sp0) / tdv
   A * tdv * tdv  = k * (sp1 * sp1 - sp0 * sp0) + c* tdv * (sp1 - sp0)

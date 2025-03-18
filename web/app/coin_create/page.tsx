@@ -1,7 +1,7 @@
 // src/components/CreateCoin.tsx - 界面三
 'use client'
 import React, { useState } from 'react';
-import { useCurrentWallet} from '@mysten/dapp-kit';
+import { useCurrentWallet,useCurrentAccount} from '@mysten/dapp-kit';
 import { CoinCreatedEvent,PublishCoinParams } from '@/lib/types';
 import { getSuiConfig } from '@/lib/sui/sui_config';
 import { ConnectButton } from '@mysten/dapp-kit';
@@ -13,11 +13,13 @@ import ViewTransaction from '@/components/ViewTransaction';
 import IntegerInput from '@/components/IntegerInput';
 import ImageFileInput from '@/components/ImageFileInput'
 import { MintForm } from '@/lib/types';
-import { kMaxLength } from 'buffer';
 import { PublishedBody,PublishResult} from '@/lib/types';
+import  Link  from 'next/link';
+import { redirect } from 'next/navigation';
 
 const CreateCoin: React.FC = () => {
   const wallet = useCurrentWallet();
+  const account = useCurrentAccount();
   const [form, setForm] = useState<MintForm>({
     name: '',
     symbol: '',
@@ -51,19 +53,21 @@ const CreateCoin: React.FC = () => {
         body: JSON.stringify(form)
       });
 
-      if (!response.ok) {
-        console.log("response:",response);
-        throw new Error('上传失败');
+      if(response.ok){
+        const rspBody = await response.json() as unknown as PublishedBody;
+        if(rspBody.publish_info){
+          setPr(rspBody.publish_info!);
+        } else {
+          setPr(null);
+        }
+        console.log("rspBody:",rspBody);
+      } else{
+        const result : PublishResult = {
+          isSucc : false,
+          errMsg : response.statusText
+        }
+        setPr(result)
       }
-
-      const rspBody = await response.json() as unknown as PublishedBody;
-      if(rspBody.publish_info){
-        setPr(rspBody.publish_info!);
-      } else {
-        setPr(null);
-      }
-
-      console.log("rspBody:",rspBody);
     } catch (error) {
       console.error('Failed to create coin:', error);
       setPr(null)
@@ -71,16 +75,13 @@ const CreateCoin: React.FC = () => {
   };
 
   if (!wallet.isConnected) {
-    return <div>Please connect your SUI wallet to create a coin  <ConnectButton /></div>;
+    return <div>Please connect your SUI wallet to create a coin </div>;
   }
 
   return (
     
     <div className="create-coin w-800 ">
-      <header className="flex justify-between items-center p-4 bg-white shadow-md">
-      <h1>Create New Coin</h1>
-        <ConnectButton />
-      </header>
+
       <center>
       <div className="grid grid-cols-2 gap-4">
             <label htmlFor="Name" className="block text-sm font-medium text-gray-700">Name</label>
@@ -126,19 +127,24 @@ const CreateCoin: React.FC = () => {
 
         <button onClick={handleCreate}>Create Coin</button>
       </div>
-      { (pr && pr.isSucc) &&
-      <div className="grid grid-cols-2 gap-4">
+      { pr && pr.isSucc && <div>
+        <div className="grid grid-cols-1 gap-4  w-800">
+        <div>
         <CopyButton display={pr.publish_digest!} copy_value={pr.publish_digest!} size={20} fontSize={12}></CopyButton>
-        <ViewTransaction size={20} fontSize={12} txId={pr.publish_digest!}></ViewTransaction>
+        </div>
+        <div>
+        <ViewTransaction size={20} fontSize={12} txId={pr.publish_digest!}></ViewTransaction></div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
         <p>Coin Type</p><p>{pr.coin_type}</p>
         <p>Vault</p><p>{pr.vault_id}</p>
+        </div>
 
-      </div>
+        <Link href={`/coins_by/${account?.address}`}>My Coins</Link>
+        </div>
       }
 
-
-      { pr && !pr.isSucc && <p>{pr.errMsg}</p>
-
+      { pr && !pr.isSucc && <p>{pr.errMsg}</p>    
       }
       </center>
       

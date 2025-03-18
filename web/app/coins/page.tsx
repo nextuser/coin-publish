@@ -7,6 +7,9 @@ import {use} from 'react'
 import config from '@/lib/sui/config'
 import {queryCoinVaults} from '@/lib/coin_info'
 import { CurveVault } from '@/lib/types';
+import { short_addr } from '@/lib/utils';
+import VaultUI from '@/components/VaultUI'
+import { ConnectButton } from '@mysten/dapp-kit';
 
 interface Coin {
   id: string;
@@ -17,9 +20,7 @@ interface Coin {
   creator: string;
 }
 
-function short_addr(addr:string){
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`
-}
+
 
 export default function CoinList(): React.ReactNode {
   const [vaults, setVaults] = useState<CurveVault[]>([]);
@@ -40,33 +41,16 @@ export default function CoinList(): React.ReactNode {
     fetchCoins();
   }, []);
 
-
-
+  
   return (
     <div className="coin-list">
+
       <h1>SUI Coins</h1>
       <div className="grid grid-cols-3 grid-rows-4">
         {
-            vaults.map(vault => {
-                const id = vault.id.id;
-                const meta = vault.meta.fields
-            
-            return (
-            <div 
-                key={vault.id.id} 
-                className="coin-card flex"
-                onClick={()=>{}}
-            >
-                <img src={meta.icon_url} alt={meta.name} width={240} height={180} />
-                <div>
-                <h3>{meta.name}</h3>
-                <p>Symbol: {meta.symbol}</p>
-                <p>{meta.decimals}</p>
-                <p>Creator: {`${short_addr(vault.coin_creator)}`}</p>
-                <p>Description: {meta.description}</p>
-                </div>
-            </div>
-            )})
+            vaults.map(vault  => {
+              return (<VaultUI key={vault.id.id} vault={vault}></VaultUI>)
+            })
         }
       </div>
       {/* 简单分页 */}

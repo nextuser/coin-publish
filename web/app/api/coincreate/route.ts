@@ -75,7 +75,7 @@ export async function POST(request: Request) {
 
 
   } catch (error ) {
-    console.error('上传失败:', error);
+    console.error('api/coincreate fail:', error);
     return NextResponse.json({ message: String(error)}, 
                             { status: 500 ,headers:{'Content-Type':'application/json'}});
   }

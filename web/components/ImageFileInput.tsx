@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Copy, Trash2 } from "lucide-react";
 
-export default function ImageUpload(props:{fileUrl:string, setFileUrl: (url :string)=>void}) {
+export default function ImageFileInput(props:{fileUrl:string, setFileUrl: (url :string)=>void}) {
   const [inputType, setInputType] = useState('file');
   const [file, setFile] = useState(null);
   const [imageUrl, setImageUrl] = useState('');
@@ -47,14 +47,14 @@ export default function ImageUpload(props:{fileUrl:string, setFileUrl: (url :str
         });
   
         if (!response.ok) {
-          throw new Error('上传失败');
+          throw new Error('upload failed');
         }
   
         const result = await response.json();
-        console.log('上传成功: result', result);
+        console.log('upload success, result =', result);
         return result.url;
       } catch (err) {
-        setError(err instanceof Error ? err.message : '上传失败');
+        setError(err instanceof Error ? err.message : 'upload failed');
       } finally {
         setUploading(false);
       }
@@ -64,13 +64,13 @@ export default function ImageUpload(props:{fileUrl:string, setFileUrl: (url :str
   const handleSubmit = async () => {
     let arg : File | string;
     if (inputType === 'file' && file) {
-      console.log('上传文件:', file);
+      console.log('upload file name:', file);
       arg = file;
     } else if (inputType === 'url' && imageUrl) {
-      console.log('输入 URL:', imageUrl);
+      console.log('handle image url:', imageUrl);
       arg = imageUrl;
     } else {
-      alert('请选择图片或输入 URL');
+      alert('sect a local Image or input a image url');
       return;
     }
     let url = (await uploadFile(arg) ) || '';
@@ -89,13 +89,13 @@ export default function ImageUpload(props:{fileUrl:string, setFileUrl: (url :str
     { error && <p>{error}</p>}
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
     <DialogTrigger onClick={() => setIsOpen(true)}>
-    <p>上传图片</p>
+    <p>Upload</p>
     </DialogTrigger>
       <DialogContent className="absolute m-auto max-w-md top-1/2 -translate-y-1/2">
         <DialogHeader>
-          <DialogTitle>上传图片</DialogTitle>
+          <DialogTitle>Upload Image</DialogTitle>
           <DialogDescription>
-            选择本地图片上传,或输入图片URL
+          Select the local image to upload, or enter the image URL
           </DialogDescription>
         </DialogHeader>
         <div className="mb-6">
@@ -107,7 +107,7 @@ export default function ImageUpload(props:{fileUrl:string, setFileUrl: (url :str
             onChange={() => handleInputTypeChange('file')}
             className="mr-2"
           />
-          选择本地图片
+          Select Local Image
         </label>
         <label>
           <input
@@ -117,7 +117,7 @@ export default function ImageUpload(props:{fileUrl:string, setFileUrl: (url :str
             onChange={() => handleInputTypeChange('url')}
             className="mr-2"
           />
-          输入图片 URL
+          Input Image Url
         </label>
       </div>
 
@@ -131,8 +131,8 @@ export default function ImageUpload(props:{fileUrl:string, setFileUrl: (url :str
         <div className="mb-6">
           <input
             type="text"
-            placeholder="请输入图片 URL"
-            value={imageUrl}
+            placeholder={'Please enter the image URL'}
+            value = {imageUrl}
             onChange={handleUrlChange}
             className="w-full p-2 border rounded"
           />
@@ -141,7 +141,7 @@ export default function ImageUpload(props:{fileUrl:string, setFileUrl: (url :str
 
       {preview && (
         <div className="mb-6">
-          <img src={preview} alt="预览" className="w-full rounded-lg" />
+          <img src={preview} alt="Preview" className="w-full rounded-lg" />
         </div>
       )}
 
@@ -149,7 +149,7 @@ export default function ImageUpload(props:{fileUrl:string, setFileUrl: (url :str
         onClick={handleSubmit}
         className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
       >
-         {uploading ? '上传中...' : '上传'}
+         {uploading ? 'Uploading...' : 'Upload'}
       </button>
         <DialogClose />
       </DialogContent>

@@ -63,7 +63,7 @@ async function storeBlob(fileOrUrl: File | string)  {
         });
 
         if (!response.ok) {
-            console.log("storeBlob: fail to upload");
+            console.log("storeBlob: fail to call upload url:",uploadUrl);
             throw new Error('Something went wrong when storing the blob!');
         }
 
@@ -118,14 +118,14 @@ function getBlobUrl(blobInfo:UploadedBlobInfo) : string{
     let blobInfo = await storeBlob(fileOrUrl);
 
     if (!blobInfo) {
-      return NextResponse.json({ message: '未找到文件' }, { status: 400 });
+      return NextResponse.json({ message: 'storeBlob fail' }, { status: 400 });
     }
 
     let fileUrl = getBlobUrl(blobInfo);
     return NextResponse.json({ url: fileUrl }, { status: 200 });
   } catch (error) {
-    console.error('上传失败:', error);
-    return NextResponse.json({ message: '上传失败' }, { status: 500 });
+    console.error('upload.ts POST fail:', error);
+    return NextResponse.json({ message: `upload failed catched error:{error}`  }, { status: 500 });
   }
 }
 

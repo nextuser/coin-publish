@@ -13,5 +13,4 @@ async function test_publish(){
 
     console.log("publish result:",publishResult);
 }
-console.log("import.meta.dirname in publish",import.meta.dirname);
 test_publish();

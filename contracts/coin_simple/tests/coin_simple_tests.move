@@ -9,13 +9,11 @@ const ENotImplemented: u64 = 0;
 
 #[test_only]
 module coin_simple::coin_simple_tests;
-use sui::coin::{Self,Coin};
+use sui::coin::{Self};
 use sui::sui::SUI;
 use coin_simple::template::{TEMPLATE,Self};
-use coin_manager::coin_manager::{Self,CoinCreatedEvent,CoinTransferEvent,CoinManagerCreated,CurveVault};
-use sui::test_scenario::{Self as tsc,TransactionEffects,Scenario};
-use sui::tx_context;
-use std::option::{Self,Option};
+use coin_manager::coin_manager::{Self,CurveVault};
+use sui::test_scenario::{Self as tsc};
 use coin_manager::logger::log;
 
 const Operator : address = @0xa;
@@ -66,7 +64,7 @@ fun test_coin_crate(){
         assert!(effects.num_user_events() > 0 ,3);
         let mut vault = tsc::take_shared<CurveVault<coin_simple::template::TEMPLATE>>(&sc1);
         assert!(vault.vault_creator() == User,4);
-        assert!(vault.vault_supply() == 0,5);
+        assert!(vault.vault_supply() == 0,1000_000);
         let pay = coin::mint_for_testing<SUI>(28100000, sc1.ctx());
         let target_amount = 1_000_000 * vault.token_decimals_value() ;
         let sp = vault.vault_supply();
@@ -80,7 +78,7 @@ fun test_coin_crate(){
     };
 
     //sell
-    let effects = tsc::next_tx(&mut sc1, User);
+    _ = tsc::next_tx(&mut sc1, User);
     {
         ////assert!(effects.num_user_events() > 0 ,3);
         let mut vault = tsc::take_shared<CurveVault<coin_simple::template::TEMPLATE>>(&sc1);

@@ -1,5 +1,5 @@
 import { fromBase64,fromHex,toHex } from '@mysten/bcs';
-import { SuiClient,getFullnodeUrl,GasCostSummary,SuiEvent,CoinStruct, MoveStruct } from '@mysten/sui/client';
+import { SuiClient,getFullnodeUrl,GasCostSummary,SuiEvent,CoinStruct, MoveStruct ,SuiEventFilter } from '@mysten/sui/client';
 import { Transaction } from '@mysten/sui/transactions';
 import { CoinCreatedEvent , CoinTransferEvent, CurveVault ,MStruct} from './types';
 import dotenv from 'dotenv';
@@ -7,18 +7,14 @@ import { getCost } from './sui/sui_client';
 import { Keypair } from "@mysten/sui/cryptography";
 import { get_buy_amount,get_sell_amount } from './coin_curve';
 import { Sevillana } from 'next/font/google';
-
-dotenv.config();
-
-const mananger_package = process.env.COIN_MANAGER_PACKAGE || '';
-if(!mananger_package || mananger_package.length == 0){
-    console.log('COIN_MANAGER_PACKAGE is not set');
-    ///process.exit(1);
+import { getSuiConfig } from './sui/sui_config';
+async function getPkgManger()  {
+    return (await getSuiConfig()).coin_manager_pkg
 }
 
 export  async function queryTransferEvents(suiClient : SuiClient, coin_type : string) : Promise<CoinTransferEvent[]>
 {   
-    const eventType = `${mananger_package}::coin_manager::CoinTransferEvent`;
+    const eventType = `${getPkgManger()}::coin_manager::CoinTransferEvent`;
     let events = await suiClient.queryEvents({
         query:{
             MoveEventType: eventType,
@@ -35,6 +31,7 @@ export  async function queryTransferEvents(suiClient : SuiClient, coin_type : st
     return transfer_events;
 }
 export async function queryCreatedEvents(suiClient:SuiClient,owner:string) : Promise<Array<CoinCreatedEvent>>{
+    const mananger_package = await getPkgManger();
     const eventType = `${mananger_package}::coin_manager::CoinCreatedEvent`;
     let events = await suiClient.queryEvents({
         query:{
@@ -65,6 +62,7 @@ export function getTypeByMeta(meta_name : string){
 }
 
 export async function getVault(suiClient:SuiClient,vault : string) : Promise<CurveVault | null>{
+    const mananger_package = await getPkgManger();
     let result = await suiClient.getObject({
         id : vault,
         options : {
@@ -268,20 +266,26 @@ export async function sell(suiClient : SuiClient,
     return[event ,getCost(result.effects?.gasUsed),vault];
 }
 
-import { getSuiConfig } from './sui/sui_config';
-export async function queryCoinVaults(suiClient :SuiClient): Promise < CurveVault[]>{
-    let suiConfig = await getSuiConfig();
 
-    const eventType = `${suiConfig.coin_manager_pkg}::coin_manager::CoinCreatedEvent`;
+
+export async function queryCoinVaults(suiClient :SuiClient, sender?:string): Promise < CurveVault[]>{
+    let suiConfig = await getSuiConfig();
+    const mananger_package = await getPkgManger();
+    const eventType = `${mananger_package}::coin_manager::CoinCreatedEvent`;
+
+
+    const query : SuiEventFilter = sender? {Sender:sender} : {MoveEventType : eventType  }
+
     let events_result = await suiClient.queryEvents({
-        query:{
-            MoveEventType: eventType,
-        }
+        query
     })  
     let vault_ids = [];
     for(let e of events_result.data){
         const ce = e.parsedJson as CoinCreatedEvent;
-        vault_ids.push(ce.vault_address);
+        if(e.type == eventType){
+            vault_ids.push(ce.vault_address);
+        }
+        console.log('event sender,evnet_type',e.sender, e.type)
     }
 
     const  valut_results = await suiClient.multiGetObjects({
@@ -300,6 +304,8 @@ export async function queryCoinVaults(suiClient :SuiClient): Promise < CurveVaul
     return ret;
 
 }
+
+
 
 
 
