@@ -25,13 +25,18 @@ const CreateCoin: React.FC = () => {
     symbol: '',
     decimals : '4',
     description: '',
-    image: ''
+    image: '',
+    minter : account ? account.address : ''
   });
   const [pr,setPr] = useState<PublishResult|null> (null)
   const handleCreate = async () => {
     if (!wallet.isConnected) {
       alert('Please connect wallet first');
       return;
+    }
+    
+    if(account == null){
+    	return alert("connect first");
     }
 
     try {
@@ -44,6 +49,7 @@ const CreateCoin: React.FC = () => {
 
       const uploadUrl = '/api/coincreate';
       console.log("uploadFile:",uploadUrl);
+      form.minter = account.address
         
       const response = await fetch('/api/coincreate', {
           method: 'POST',
@@ -125,7 +131,7 @@ const CreateCoin: React.FC = () => {
             onChange={(e) => setForm({...form, description: e.target.value})} 
             />
 
-        <button onClick={handleCreate}>Create Coin</button>
+        <button onClick={handleCreate}  disabled={!wallet.isConnected}>Create Coin</button>
       </div>
       { pr && pr.isSucc && <div>
         <div className="grid grid-cols-1 gap-4  w-800">

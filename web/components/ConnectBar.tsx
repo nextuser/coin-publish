@@ -7,8 +7,9 @@ export default function ConnectBar(){
     return (<header className="flex justify-between items-center p-4 bg-white shadow-md">
         <div className='flex justify-between px-4 m-5' >      
                 <Link href="/coins">AllCoins</Link>
-
+                <span className='mx-4'/>
                 <Link href="/coin_create">Create_Coin</Link>
+                <span className='mx-4'/>
             {acc && 
                 <Link href={`/coins_by/${acc.address}`}>My Coins</Link> 
             }

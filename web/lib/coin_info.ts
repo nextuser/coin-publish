@@ -272,10 +272,10 @@ export async function queryCoinVaults(suiClient :SuiClient, sender?:string): Pro
     let suiConfig = await getSuiConfig();
     const mananger_package = await getPkgManger();
     const eventType = `${mananger_package}::coin_manager::CoinCreatedEvent`;
-
+    console.log("suiConfig:",suiConfig);
 
     const query : SuiEventFilter = sender? {Sender:sender} : {MoveEventType : eventType  }
-
+    console.log("queryCoinVaults query=",query);
     let events_result = await suiClient.queryEvents({
         query
     })  

@@ -97,6 +97,7 @@ export type PublishCoinParams =  {
     symbol :string ,
     decimal:number,
     desc:string ,
+    minter : string,
     imageUrl? : string
 }
 
@@ -107,6 +108,7 @@ export type MintForm ={
     description: string,
     image: string,
     decimals:string,
+    minter : string
 }
 
 

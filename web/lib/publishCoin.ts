@@ -6,12 +6,12 @@ import { bcs } from '@mysten/bcs';
 import * as template from '../pkg';
 import { assert } from 'console';
 import { Transaction } from '@mysten/sui/transactions';
-import {getSigner,getLocalSigner} from './sui/local_key';
 import { fromBase64,fromHex,toHex } from '@mysten/bcs';
 import { SuiClient,getFullnodeUrl,GasCostSummary } from '@mysten/sui/client';
 import { test_env as env } from "./sui/config";
 import { threadId } from 'worker_threads';
 import dotenv from 'dotenv'
+import { Keypair } from '@mysten/sui/cryptography';
 import { getCost } from './sui/sui_client';
 import { CoinCreatedEvent,PublishCoinParams,PublishResult,HttpPublishResponse } from './types';
 import { types } from 'util';
@@ -49,7 +49,7 @@ export function getPublishHttpResponse(  publish_info: PublishResult) : HttpPubl
 
 
 const INITIAL_SUPPLY = 1000_000_000;
-export async function publishCoin(params : PublishCoinParams, operator :string) : Promise<PublishResult>{
+export async function publishCoin(params : PublishCoinParams, operator :string, keypair : Keypair) : Promise<PublishResult>{
 
     let publishResult : PublishResult = {isSucc:true};
     //let version = template.version();
@@ -117,14 +117,13 @@ export async function publishCoin(params : PublishCoinParams, operator :string) 
 
 
     // Update URL
-    if(params.imageUrl){
-        updated = template.update_constants(
-            updated,
-            bcs.string().serialize(params.imageUrl).toBytes(), // new value
-            bcs.string().serialize('IMAGE_URL_TEMPLATE').toBytes(), // current value
-            'Vector(U8)', // type of the constant
-        );
-    }
+    let url = params.imageUrl ? params.imageUrl : '';
+    updated = template.update_constants(
+        updated,
+        bcs.string().serialize(url).toBytes(), // new value
+        bcs.string().serialize('IMAGE_URL_TEMPLATE').toBytes(), // current value
+        'Vector(U8)', // type of the constant
+    );
 
 
        // Update URL
@@ -134,7 +133,7 @@ export async function publishCoin(params : PublishCoinParams, operator :string) 
         bcs.u64().serialize('1000000').toBytes(), // current value
         'U64', // type of the constant
     );
-    let signer = getLocalSigner();
+    let signer = keypair;
     let tx = new Transaction();
     let arr = updated as unknown as number[];
     let modules :number [][] = [];

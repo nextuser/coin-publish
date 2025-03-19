@@ -8,7 +8,8 @@ import { MintForm } from '@/lib/types';
 import { PublishCoinParams } from '@/lib/types';
 import { publishCoin,getPublishHttpResponse } from '@/lib/publishCoin';
 import { getURLFromRedirectError } from 'next/dist/client/components/redirect';
-
+import { Keypair } from '@mysten/sui/cryptography';
+import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 
 
     
@@ -33,6 +34,7 @@ function get_string_value(formData:FormData , name :ArgType){
     let image = get_string_value(formData,'image');
     let description = get_string_value(formData,'description')
     const name = get_string_value(formData ,'name' );
+    const minter = get_string_value(formData ,'minter' );
 
     let param :PublishCoinParams = {
         module_name: symbol.toLowerCase(),
@@ -40,6 +42,7 @@ function get_string_value(formData:FormData , name :ArgType){
         symbol : symbol ,
         decimal: Number(decimals) ,
         desc: description ,
+        minter,
         imageUrl : image.length > 0  ? image : undefined
     }
     return  param;
@@ -55,7 +58,9 @@ function get_string_value(formData:FormData , name :ArgType){
         symbol : symbol.toUpperCase() ,
         decimal: Number(form.decimals) ,
         desc: form.description ,
-        imageUrl : image.length > 0  ? image : undefined
+        minter : form.minter,
+        imageUrl : image.length > 0  ? image : undefined,
+        
     }
     
     return param
@@ -64,11 +69,17 @@ function get_string_value(formData:FormData , name :ArgType){
  
 export async function POST(request: Request) {
   console.log("upload/route.ts :post");
+  const mnemonic = process.env.MNEMONIC;
+  if(mnemonic == null){
+    const msg = "configuration error,mnemonic not configured"
+    return NextResponse.json({"message": msg}, {status:500,statusText:msg});
+  }
   try {
     const param = await getJsonParams(request);
     const suiConfig = await getSuiConfig();
     console.log("publish coin param:",param);
-    let result = await publishCoin(param,suiConfig.operator);
+    const keypair = Ed25519Keypair.deriveKeypair(mnemonic)
+    let result = await publishCoin(param,suiConfig.operator,keypair);
     let pr  = getPublishHttpResponse(result);
     return NextResponse.json(pr.body,
                               pr.options);
