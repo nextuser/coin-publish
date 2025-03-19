@@ -741,7 +741,7 @@ module.exports.__wbindgen_throw = function(arg0, arg1) {
 const filename = import.meta.url; // 获取当前文件的路径
 //todo nextjs 通过web server访问的时候, 往往加载move_bytecode_template_bg.wasm 错误
 const workdir = process.env.npm_config_local_prefix || process.cwd();
-console.log("cwd", workdir);
+//console.log("cwd", workdir);
 const path = require('path').join(workdir,'pkg', 'move_bytecode_template_bg.wasm');
 const bytes = require('fs').readFileSync(path);
 
