@@ -12,12 +12,54 @@ module coin_simple::coin_simple_tests;
 use sui::coin::{Self};
 use sui::sui::SUI;
 use coin_simple::template::{TEMPLATE,Self};
-use coin_manager::coin_manager::{Self,CurveVault};
+use coin_manager::coin_manager::{Self,waitToCreate,after_create,Manager,CurveVault};
 use sui::test_scenario::{Self as tsc};
 use coin_manager::logger::log;
 
 const Operator : address = @0xa;
 const User : address = @0xb;
+const Other : address = @0xc;
+
+
+#[test]
+fun test_create(){
+
+
+    let mut sc = tsc::begin(Operator);
+    coin_manager::init_for_test(sc.ctx());
+    
+
+    let _ = tsc::next_tx(&mut sc, User);
+    {
+        let mut manager = tsc::take_shared<Manager>(&sc);
+        let coin = coin::mint_for_testing(15_0000_0000, sc.ctx());
+        waitToCreate(coin,Operator,&mut manager,sc.ctx()); 
+        tsc::return_shared(manager);
+    };
+
+    let _ = tsc::next_tx(&mut sc, Operator);
+    {
+
+        template::init_for_test(sc.ctx());
+    };
+
+    let _ = tsc::next_tx(&mut sc, Operator);
+    {
+        let mut manager = tsc::take_shared<Manager>(&sc);
+        assert!(coin_manager::is_creatable_by(User,& manager, sc.ctx()));
+        assert!(!coin_manager::is_creatable_by(Other,& manager, sc.ctx()));
+        assert!(!coin_manager::is_creatable_by(Operator,& manager, sc.ctx()));
+        let mut vault : CurveVault<coin_simple::template::TEMPLATE> = sc.take_shared();
+        after_create(User,&mut vault,&mut manager, sc.ctx());
+        assert!(!coin_manager::is_creatable_by(User,& manager, sc.ctx()));
+        tsc::return_shared(vault);
+        tsc::return_shared(manager);
+
+    };
+
+    
+    tsc::end(sc);
+}
 
 // fun findEvent<T: copy + drop>(effects :&TransactionEffects,sc : & Scenario, owner : address) : Option<T> {
 //     let len = effects.num_user_events();
