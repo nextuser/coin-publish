@@ -5,7 +5,7 @@ edition = "2024.beta" # edition = "legacy" to use legacy (pre-2024) Move
 # authors = ["..."]      # e.g., ["Joe Smith (joesmith@noemail.com)", "John Snow (johnsnow@noemail.com)"]
 
 [dependencies]
-#Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/devnet" }
+#Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet" }
 Sui = {local="/home/ljl/sui-local/sui/crates/sui-framework/packages/sui-framework/"}
 # For remote import, use the `{ git = "...", subdir = "...", rev = "..." }`.
 # Revision can be a branch, a tag, and a commit hash.
@@ -21,7 +21,7 @@ coin_manager = { local = "../coin_manager"}
 
 [addresses]
 coin_simple = "0x0"
-coin_manager = "0x12b1b0b0431d8bf7c46134f6c1a5efeee98a5240669819e10eaaffb19351384f"
+coin_manager = "0xc650be7a023c5fd463f352ecf9d5cbfb8c17fe94c55a4d6a3d5c76aff40ddcd8"
 
 # Named addresses will be accessible in Move as `@name`. They're also exported:
 # for example, `std = "0x1"` is exported by the Standard Library.

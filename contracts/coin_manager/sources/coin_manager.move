@@ -1,5 +1,4 @@
 
-/// Module: coin_manager
 module coin_manager::coin_manager;
 use sui::coin::{Coin,CoinMetadata,TreasuryCap};
 use sui::balance::{Self,Balance,Supply};
@@ -7,6 +6,7 @@ use sui::sui::SUI;
 use std::string;
 use std::ascii;
 use sui::event::emit;
+use sui::table::{Table,Self};
 use coin_manager::logger::log;
 use coin_manager::utils::pow;
 
@@ -36,6 +36,8 @@ public struct CoinManagerCreated has copy,drop{
 public struct Manager has key{
     id : UID,
     owner : address,
+    
+    minterOpertaorTable:Table<address,address>,
 }
 
 public fun manager_owner(m : &Manager) : address{
@@ -74,7 +76,10 @@ fun init(ctx : &mut TxContext){
     let manager = Manager{
         id : object::new(ctx),
         owner : ctx.sender(),
+        //minter => operator
+        minterOpertaorTable:table::new(ctx),
     };
+
     let manager_addr = object::id(&manager).to_address();
     sui::event::emit(CoinManagerCreated{
         manager : manager_addr,
@@ -96,10 +101,10 @@ public fun register_coin<T >( treasury: TreasuryCap<T>, meta : CoinMetadata<T>, 
     let mut supply = treasury.treasury_into_supply();
     let token_decimals_value = pow(10,meta.get_decimals() ) ;
     let  balance = supply.increase_supply(INIT_SUPPLY * token_decimals_value);
+
     // let coin = balance::split(&mut balance,TOKEN_FOR_CREATOR).into_coin(ctx);
     // transfer::public_transfer(coin,creator);
     let vault = CurveVault<T>{
-        
         id : sui::object::new(ctx ),
         coin_creator : creator,
         total_supply : supply,
@@ -117,8 +122,30 @@ public fun register_coin<T >( treasury: TreasuryCap<T>, meta : CoinMetadata<T>, 
         minter : creator,
         treasury_address: treasury_addr
     });
-
+    
     transfer::public_share_object(vault);
+}
+
+const COIN_CREATE_COST  :u64 = 15_000_000;
+const ERR_BALANCE_NOT_ENOUGH : u64 = 1;
+
+
+#[allow(lint(self_transfer))]
+entry public(package) fun  waitToCreate(coin : Coin<SUI> ,operator : address, manager :&mut Manager, ctx : & TxContext){
+    assert!(coin.value() >= COIN_CREATE_COST ,ERR_BALANCE_NOT_ENOUGH);
+    transfer::public_transfer(coin,operator);
+    table::add(&mut manager.minterOpertaorTable, ctx.sender(), operator);
+}
+
+public fun is_creatable_by(operator:address,manager :& Manager, ctx : &mut  TxContext) : bool{
+    table::contains(&manager.minterOpertaorTable, ctx.sender()) &&
+     table::borrow(&manager.minterOpertaorTable, ctx.sender()) == operator
+}
+
+
+public fun afterCreate(manager:&mut Manager , operator : address,ctx : &mut TxContext) {
+    let op = table::remove(&mut manager.minterOpertaorTable, ctx.sender());
+    assert!(operator == op);
 }
 
 /**
