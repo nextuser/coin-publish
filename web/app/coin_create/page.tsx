@@ -16,6 +16,8 @@ import { MintForm } from '@/lib/types';
 import { PublishedBody,PublishResult} from '@/lib/types';
 import  Link  from 'next/link';
 import { redirect } from 'next/navigation';
+import { Transaction } from '@mysten/sui/transactions';
+import { useSuiClient } from '@mysten/dapp-kit';
 
 const CreateCoin: React.FC = () => {
   const wallet = useCurrentWallet();
@@ -51,7 +53,7 @@ const CreateCoin: React.FC = () => {
       console.log("uploadFile:",uploadUrl);
       form.minter = account.address
         
-      const response = await fetch('/api/coincreate', {
+      const response = await fetch(uploadUrl, {
           method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -68,11 +70,7 @@ const CreateCoin: React.FC = () => {
         }
         console.log("rspBody:",rspBody);
       } else{
-        const result : PublishResult = {
-          isSucc : false,
-          errMsg : response.statusText
-        }
-        setPr(result)
+        setPr({isSucc:false,errMsg: response.statusText})
       }
     } catch (error) {
       console.error('Failed to create coin:', error);
