@@ -26,6 +26,8 @@ export default function CoinCreate(): React.ReactNode {
   
   const wallet = useCurrentWallet();
   const account = useCurrentAccount();
+
+
   const [form, setForm] = useState<MintForm>({
     name: '',
     symbol: '',
@@ -35,62 +37,43 @@ export default function CoinCreate(): React.ReactNode {
     minter : account ? account.address : ''
   });
   const [pr,setPr] = useState<PublishResult|null> (null)
-  
   const pkg = suiConfig.coin_manager_pkg;
-  console.log("coin_create: pkg=",pkg);
-
   const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction(); 
-  async function preCreate() : Promise<Result> {
+
+
+  if (!wallet.isConnected || !account) {
+    return <div>Please connect your SUI wallet to create a coin </div>;
+  }
+  
+    async function preCreate(  cb: ()=>Promise<void>) : Promise<Result> {
     const tx = getPrecreateTx(suiConfig.operator);
     let ret : Result = {isSucc:true};
     await signAndExecuteTransaction({transaction:tx},{
       onSuccess:() =>{
-          ret = {isSucc:true}
+        cb().then(()=>{
+        ret = {isSucc:true}
+        });
       },
       onError: (err)=>{ 
           ret = { isSucc : false,errMsg:`fail to call coin_manager::waitToCreate ${err.message}`};
       }
     });
-
     return ret;
-    
+ 
   }
   
-  const handleCreate = async () => {
-    if (!wallet.isConnected) {
-      alert('Please connect wallet first');
-      return;
-    }
-    
-    if(account == null){
-    	return alert("connect first");
-    }
-
+  const create_coin = async ()=>{
     try {
-      // 这里实现合约调用创建coin
-      console.log('Creating coin with:', form);
-      // const formData = new FormData();
-      // Object.entries(form).forEach(([k,v])=>{
-      //   formData.append(k,v);
-      // })
-      const result = await preCreate();
-      console.log("precreate result:",result);
-
-      if(!result.isSucc){
-        return <p>{result.errMsg}</p>
-      }
-
-
       const uploadUrl = '/api/coincreate';
       console.log("uploadFile:",uploadUrl);
-      form.minter = account.address
+      form.minter = account!.address
         
       const response = await fetch(uploadUrl, {
           method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(form)
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(form)
       });
       console.log("response of api/uploadUrl")
       if(response.ok){
@@ -109,11 +92,18 @@ export default function CoinCreate(): React.ReactNode {
       console.error('Failed to create coin:', error);
       setPr(null)
     }
+  }
+  
+    const handleCreate = async () => {
+    const result = await preCreate( create_coin);
+
+    console.log("precreate result:",result);
+
+    if(!result.isSucc){
+      return <p>{result.errMsg}</p>
+    }
   };
 
-  if (!wallet.isConnected) {
-    return <div>Please connect your SUI wallet to create a coin </div>;
-  }
 
   return (
     
