@@ -10,6 +10,7 @@ import { Sevillana } from 'next/font/google';
 import suiConfig from '@/lib/suiConfig.json';
 import { suiClient } from '@/contracts';
 import { getLocalSigner } from './sui/local_key';
+import { getTypeByMeta } from './utils';
 
 async function getPkgManger()  {
     return suiConfig.coin_manager_pkg
@@ -55,14 +56,7 @@ export async function queryCreatedEvents(suiClient:SuiClient,owner:string) : Pro
     return created_events;
 }
 
-export function getTypeByMeta(meta_name : string){
-    //console.log('meta_name',meta_name);
-    let start = meta_name.indexOf("<");
-    let end = meta_name.indexOf(">")
-    let type = meta_name.substring(start + 1 ,end);
-    //console.log("meta=>type",meta_name, type);
-    return type
-}
+
 
 export async function getVault(suiClient:SuiClient,vault : string) : Promise<CurveVault | null>{
     const mananger_package = await getPkgManger();

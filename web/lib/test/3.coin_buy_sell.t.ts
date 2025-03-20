@@ -1,4 +1,4 @@
-import { queryCreatedEvents , getSupply,getVault,getTypeByMeta,queryTransferEvents,  sell_by_amount } from "../coin_info";
+import { queryCreatedEvents , getSupply,getVault,queryTransferEvents,  sell_by_amount } from "../coin_info";
 import { CoinTransferEvent,CoinCreatedEvent, CurveVault } from "../types";
 import {get_buy_amount,get_sell_amount} from '../coin_curve'
 import {getSigner,getLocalSigner} from '../sui/local_key';
@@ -9,6 +9,7 @@ import { sign } from "crypto";
 import { getCost } from "../sui/sui_client";
 import dotenv from 'dotenv';
 import { buy ,sell} from "../coin_info";
+import {getTypeByMeta} from '@/lib/utils'
 import { exit } from "process";
 dotenv.config();
 

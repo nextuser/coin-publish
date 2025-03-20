@@ -1,7 +1,7 @@
 // src/components/CreateCoin.tsx - 界面三
 'use client'
 import React, { useState } from 'react';
-import { useCurrentWallet,useCurrentAccount ,useSignAndExecuteTransaction} from '@mysten/dapp-kit';
+import { useCurrentWallet,useCurrentAccount ,useSignAndExecuteTransaction, SuiClientContext} from '@mysten/dapp-kit';
 import { CoinCreatedEvent,PublishCoinParams } from '@/lib/types';
 import { ConnectButton } from '@mysten/dapp-kit';
 import { SUI_DECIMALS } from '@mysten/sui/utils';
@@ -18,8 +18,9 @@ import { redirect } from 'next/navigation';
 import { Transaction } from '@mysten/sui/transactions';
 import { useSuiClient } from '@mysten/dapp-kit';
 import  suiConfig from '@/lib/suiConfig.json'
-
+import { Result } from '@/lib/types';
 import { NextPage } from 'next';
+import { getPrecreateTx} from '@/lib/publish_client';
 
 export default function CoinCreate(): React.ReactNode {
   
@@ -39,21 +40,15 @@ export default function CoinCreate(): React.ReactNode {
   console.log("coin_create: pkg=",pkg);
 
   const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction(); 
-  async function preCreate()  {
-    const tx = new Transaction();
-
-    //entry public(package) fun  waitToCreate(coin : Coin<SUI> ,operator : address, manager :&mut Manager, ctx : & TxContext){
-    let new_coin = tx.splitCoins(tx.gas,[15_000_000])
-    tx.moveCall({target:`${pkg}::coin_manager::waitToCreate`, 
-            arguments:[tx.object(new_coin), tx.pure.address(suiConfig.operator),tx.pure.address(suiConfig.coin_manager)]})
-    
-    let ret = [true,''];
+  async function preCreate() : Promise<Result> {
+    const tx = getPrecreateTx(suiConfig.operator);
+    let ret : Result = {isSucc:true};
     await signAndExecuteTransaction({transaction:tx},{
       onSuccess:() =>{
-          return [true,'']
+          ret = {isSucc:true}
       },
       onError: (err)=>{ 
-          ret = [false,`fail to call coin_manager::waitToCreate ${err.message}`];
+          ret = { isSucc : false,errMsg:`fail to call coin_manager::waitToCreate ${err.message}`};
       }
     });
 
@@ -78,6 +73,13 @@ export default function CoinCreate(): React.ReactNode {
       // Object.entries(form).forEach(([k,v])=>{
       //   formData.append(k,v);
       // })
+      const result = await preCreate();
+      console.log("precreate result:",result);
+
+      if(!result.isSucc){
+        return <p>{result.errMsg}</p>
+      }
+
 
       const uploadUrl = '/api/coincreate';
       console.log("uploadFile:",uploadUrl);
@@ -90,11 +92,12 @@ export default function CoinCreate(): React.ReactNode {
         },
         body: JSON.stringify(form)
       });
-
+      console.log("response of api/uploadUrl")
       if(response.ok){
         const rspBody = await response.json() as unknown as PublishedBody;
-        if(rspBody.publish_info){
-          setPr(rspBody.publish_info!);
+        
+        if(rspBody.publishResult){
+          setPr(rspBody.publishResult);
         } else {
           setPr(null);
         }
@@ -159,16 +162,16 @@ export default function CoinCreate(): React.ReactNode {
             onChange={(e) => setForm({...form, description: e.target.value})} 
             />
 
-        <button onClick={handleCreate}  disabled={!wallet.isConnected}>Create Coin</button>
+        <button onClick={(e)=>{ handleCreate()}}  disabled={!wallet.isConnected}>Create Coin</button>
       </div>
       { pr && pr.isSucc && <div>
-        <div className="grid grid-cols-1 gap-4  w-800">
-        <div>
-        <CopyButton display={pr.publish_digest!} copy_value={pr.publish_digest!} size={20} fontSize={12}></CopyButton>
-        </div>
-        <div>
-        <ViewTransaction size={20} fontSize={12} txId={pr.publish_digest!}></ViewTransaction></div>
-        </div>
+        {pr.publish_digest && (
+          <div className="grid grid-cols-1 gap-4  w-800">
+        
+          <div><CopyButton display={pr.publish_digest!} copy_value={pr.publish_digest!} size={20} fontSize={12}></CopyButton></div>
+          <div><ViewTransaction size={20} fontSize={12} txId={pr.publish_digest!}></ViewTransaction></div>
+        </div>)
+        }
         <div className="grid grid-cols-2 gap-4">
         <p>Coin Type</p><p>{pr.coin_type}</p>
         <p>Vault</p><p>{pr.vault_id}</p>

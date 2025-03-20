@@ -34,5 +34,25 @@ export function normaize_address(addr_arg : string){
 
 }
 
+//type ArgType = keyof MintForm;
+function get_string_value<ArgType extends string>(formData:FormData , name :ArgType){
+    let value = formData.get(name);
+    if(value != null && typeof(value) == 'string'){
+        return value;
+    } else{
+        throw new Error(`invalid paramter value ,paramter name ${name}, value=${value}`)
+    }
+}
+
+
+export function getTypeByMeta(meta_name : string){
+    //console.log('meta_name',meta_name);
+    let start = meta_name.indexOf("<");
+    let end = meta_name.indexOf(">")
+    let type = meta_name.substring(start + 1 ,end);
+    //console.log("meta=>type",meta_name, type);
+    return type
+}
+
 // console.log(normaize_address('0x37478d1d2daa86df006fec55047ab97f1c4bbffa7c78bac446d67c9e01b1daa'));
 // console.log(normaize_address('37478d1d2daa86df006fec55047ab97f1c4bbffa7c78bac446d67c9e01b1daa'));

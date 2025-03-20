@@ -8,7 +8,8 @@ import { Transaction } from "@mysten/sui/transactions";
 import { isCreatable ,} from "../publishCoin";
 import suiConfig from '@/lib/suiConfig.json'
 import { suiClient } from "@/contracts";
-import { getPrecreateTx ,getAfterCreateTx} from "../publishCoin";
+import {  getAfterCreateTx} from "../publishCoin";
+import { getPrecreateTx} from '../publish_client';
 import { getLocalSigners } from '../sui/local_key';
 const signers = getLocalSigners();
 const operator = signers[signers.length - 1 ];

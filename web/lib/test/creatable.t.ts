@@ -4,7 +4,7 @@ import { isCreatable ,} from "../publishCoin";
 import suiConfig from '@/lib/suiConfig.json'
 import { suiClient } from "@/contracts";
 import { getLocalSigner } from "../sui/local_key";
-import { getPrecreateTx } from "../publishCoin";
+import { getPrecreateTx } from "@/lib/publish_client";
 import { getLocalSigners } from '../sui/local_key';
 const signers = getLocalSigners();
 const operator = signers[signers.length - 1 ];

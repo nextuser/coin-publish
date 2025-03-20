@@ -7,14 +7,15 @@ import * as template from '../pkg';
 import { assert } from 'console';
 import { Transaction } from '@mysten/sui/transactions';
 import { fromBase64,fromHex,toHex } from '@mysten/bcs';
-import { SuiClient,getFullnodeUrl,GasCostSummary } from '@mysten/sui/client';
+import { SuiClient,getFullnodeUrl } from '@mysten/sui/client';
 import { test_env as env } from "./sui/config";
 import { Keypair } from '@mysten/sui/cryptography';
 import { getCost } from './sui/sui_client';
 import { CoinCreatedEvent,PublishCoinParams,PublishResult,HttpPublishResponse, CurveVault } from './types';
 import suiConfig from '@/lib/suiConfig.json'; 
 import { normaize_address } from './utils';
-import { getTypeByMeta } from './coin_info';
+import { Result } from './types';
+
 type DumpFormat ={
     modules : string[],
     dependencies:string[],
@@ -37,28 +38,16 @@ function readCoinTemplateBytes() : [ Uint8Array,string[]]{
     return [bytecode,module_bytes.dependencies];
 }
 
-export function getPrecreateTx(operator :string) : Transaction{
-    const tx = new Transaction();
-    const pkg = suiConfig.coin_manager_pkg;
-    //entry public(package) fun  waitToCreate(coin : Coin<SUI> ,operator : address, manager :&mut Manager, ctx : & TxContext){
-    let new_coin = tx.splitCoins(tx.gas,[15_000_000])
-    const target = `${pkg}::coin_manager::waitToCreate`;
-    console.log("getPrecreateTx target:",target);
-    tx.moveCall({target, 
-            arguments:[new_coin, tx.pure.address(operator),tx.object(suiConfig.coin_manager)]})
-    tx.setGasBudget(1e8)
-    return tx;
-}
 
 //public fun after_create<T>(user : address,vault : &mut CurveVault<T>,manager:&mut Manager , ctx : &mut TxContext)
-export function getAfterCreateTx(user:string,vault :string, coin_type :string):Transaction{
+export function getAfterCreateTx(minter:string,vault :string, coin_type :string):Transaction{
     
     const tx = new Transaction();
     const pkg = suiConfig.coin_manager_pkg;
     const target =  `${pkg}::coin_manager::after_create`;
-    console.log('after_create argurments',target,user,vault,suiConfig.coin_manager ,' type-arguments:',coin_type);
+    console.log('after_create argurments',target,minter,vault,suiConfig.coin_manager ,' type-arguments:',coin_type);
     const arg = { target , 
-        arguments:[tx.pure.address(user), tx.object(vault),tx.object(suiConfig.coin_manager),],
+        arguments:[tx.pure.address(minter), tx.object(vault),tx.object(suiConfig.coin_manager),],
         typeArguments : [coin_type] 
     }
     //console.log("getAfterCreateTx , arg", arg);
@@ -71,14 +60,15 @@ export function getAfterCreateTx(user:string,vault :string, coin_type :string):T
 
 
 
-export function getPublishHttpResponse(  publish_info: PublishResult) : HttpPublishResponse{
+export function getPublishHttpResponse(  result: Result ,publishResult? : PublishResult) : HttpPublishResponse{
     const response : HttpPublishResponse = {
-        body : {  message : publish_info.errMsg || "success" ,
-                  publish_info
+        body : {  message : result.errMsg || "success" ,
+                  result,
+                  publishResult
                },
         options : {
-            status : publish_info.isSucc ? 200 : 500,
-            statusText : publish_info.errMsg
+            status : result.isSucc ? 200 : 500,
+            statusText : result.errMsg
         }
     }   
     return response;
@@ -235,7 +225,7 @@ export async function publishCoin(params : PublishCoinParams,  keypair : Keypair
                 publishResult.coin_package_id = item.packageId;
             } else if (item.type == "created"){
                 console.log("publish created object_type",item.objectType);
-                if(item.objectType.endsWith("coin_manager::CurveVault")){
+                if(item.objectType.indexOf("::coin_manager::CurveVault<") != -1){
                     publishResult.vault_id = item.objectId;
                 }
 

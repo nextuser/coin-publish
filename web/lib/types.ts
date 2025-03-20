@@ -1,4 +1,3 @@
-import { stringify } from "querystring"
 
 export type CoinCreatedEvent ={
     vault_address : string,
@@ -24,6 +23,11 @@ export type CoinManagerCreated ={
 
 type UID ={
     id : string
+}
+
+export type Result = {
+  isSucc :boolean,
+  errMsg? : string,
 }
 
 type Supply = {
@@ -129,7 +133,8 @@ export type  PublishResult = {
 
 export type  PublishedBody = {
     message : string,
-    publish_info? : PublishResult
+    result? : Result,
+    publishResult ? : PublishResult,
 
 }
 

@@ -151,26 +151,30 @@ public fun is_creatable_by(minter:address,manager :& Manager, ctx : &mut  TxCont
      ret.is_some() &&  ret.borrow() ==ctx.sender()
 }
 
+const AFTER_CREATE_SUCC : u64 = 0;
+const AFTER_CREATE_ERR_NO_WAIT : u64 = 1;
+const AFTER_CREATE_ERR_WAIT_OTHER_OP : u64 = 2;
+const AFTER_CREATE_RESULT_ERR_VAULT_OPERATOR : u64 = 3;
 
 // server call by operator 
-public fun after_create<T>(user : address,vault : &mut CurveVault<T>,manager:&mut Manager , ctx : &mut TxContext) : bool{
+public fun after_create<T>(user : address,vault : &mut CurveVault<T>,manager:&mut Manager , ctx : &mut TxContext) : u64{
     let idx_opt = vec_map::get_idx_opt(& manager.minterToOperator,& user);
     if(idx_opt.is_none()){
-        return false
+        return AFTER_CREATE_ERR_NO_WAIT
     };
 
     let idx = * idx_opt.borrow();
 
     let (_,op) = vec_map::remove_entry_by_idx(&mut manager.minterToOperator, idx);
     if(op != ctx.sender()){
-        return false
+        return AFTER_CREATE_ERR_WAIT_OTHER_OP
     };
 
     if(vault.operator == ctx.sender()){
         vault.coin_creator = user;
-        return true
+        return 0
     } else{
-        return false
+        return AFTER_CREATE_RESULT_ERR_VAULT_OPERATOR
     }
 
 }
