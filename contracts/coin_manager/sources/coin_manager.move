@@ -48,7 +48,9 @@ public fun manager_owner(m : &Manager) : address{
 
 public struct CurveVault<phantom T> has key,store{
     id : UID,
+    locked : bool,
     operator : address,
+    
     coin_creator : address,
     total_supply : Supply<T>,
     curve_balance : Balance<T>,
@@ -109,6 +111,7 @@ public fun register_coin<T >( treasury: TreasuryCap<T>, meta : CoinMetadata<T>, 
     // transfer::public_transfer(coin,creator);
     let vault = CurveVault<T>{
         id : sui::object::new(ctx ),
+        locked : false,
         operator : creator,
         coin_creator : creator,
         total_supply : supply,
@@ -155,6 +158,7 @@ const AFTER_CREATE_SUCC : u64 = 0;
 const AFTER_CREATE_ERR_NO_WAIT : u64 = 1;
 const AFTER_CREATE_ERR_WAIT_OTHER_OP : u64 = 2;
 const AFTER_CREATE_RESULT_ERR_VAULT_OPERATOR : u64 = 3;
+const AFTER_CREATE_RESULT_ERR_VAULT_LOCKED : u64 = 4;
 
 // server call by operator 
 public fun after_create<T>(user : address,vault : &mut CurveVault<T>,manager:&mut Manager , ctx : &mut TxContext) : u64{
@@ -170,9 +174,14 @@ public fun after_create<T>(user : address,vault : &mut CurveVault<T>,manager:&mu
         return AFTER_CREATE_ERR_WAIT_OTHER_OP
     };
 
+    if(vault.locked){
+        return AFTER_CREATE_RESULT_ERR_VAULT_LOCKED
+    };
+
     if(vault.operator == ctx.sender()){
         vault.coin_creator = user;
-        return 0
+        vault.locked = true;
+        return AFTER_CREATE_SUCC
     } else{
         return AFTER_CREATE_RESULT_ERR_VAULT_OPERATOR
     }
