@@ -3,7 +3,7 @@
 module coin_manager::coin_manager_tests;
 //use sui::sui::SUI;
 // uncomment this line to import the module
-use coin_manager::coin_manager::{Self,waitToCreate,after_create,Manager,is_creatable_by};
+use coin_manager::coin_manager::{Self,waitToCreate,Manager,is_creatable_by};
 use sui::coin;
 //use std::unit_test::assert_eq;
 use sui::test_scenario::{Self as tsc};

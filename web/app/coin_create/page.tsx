@@ -1,9 +1,8 @@
 // src/components/CreateCoin.tsx - 界面三
 'use client'
 import React, { useState } from 'react';
-import { useCurrentWallet,useCurrentAccount} from '@mysten/dapp-kit';
+import { useCurrentWallet,useCurrentAccount ,useSignAndExecuteTransaction} from '@mysten/dapp-kit';
 import { CoinCreatedEvent,PublishCoinParams } from '@/lib/types';
-import { getSuiConfig } from '@/lib/sui/sui_config';
 import { ConnectButton } from '@mysten/dapp-kit';
 import { SUI_DECIMALS } from '@mysten/sui/utils';
 import { number } from 'echarts';
@@ -18,8 +17,12 @@ import  Link  from 'next/link';
 import { redirect } from 'next/navigation';
 import { Transaction } from '@mysten/sui/transactions';
 import { useSuiClient } from '@mysten/dapp-kit';
+import  suiConfig from '@/lib/suiConfig.json'
 
-const CreateCoin: React.FC = () => {
+import { NextPage } from 'next';
+
+export default function CoinCreate(): React.ReactNode {
+  
   const wallet = useCurrentWallet();
   const account = useCurrentAccount();
   const [form, setForm] = useState<MintForm>({
@@ -31,6 +34,33 @@ const CreateCoin: React.FC = () => {
     minter : account ? account.address : ''
   });
   const [pr,setPr] = useState<PublishResult|null> (null)
+  
+  const pkg = suiConfig.coin_manager_pkg;
+  console.log("coin_create: pkg=",pkg);
+
+  const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction(); 
+  async function preCreate()  {
+    const tx = new Transaction();
+
+    //entry public(package) fun  waitToCreate(coin : Coin<SUI> ,operator : address, manager :&mut Manager, ctx : & TxContext){
+    let new_coin = tx.splitCoins(tx.gas,[15_000_000])
+    tx.moveCall({target:`${pkg}::coin_manager::waitToCreate`, 
+            arguments:[tx.object(new_coin), tx.pure.address(suiConfig.operator),tx.pure.address(suiConfig.coin_manager)]})
+    
+    let ret = [true,''];
+    await signAndExecuteTransaction({transaction:tx},{
+      onSuccess:() =>{
+          return [true,'']
+      },
+      onError: (err)=>{ 
+          ret = [false,`fail to call coin_manager::waitToCreate ${err.message}`];
+      }
+    });
+
+    return ret;
+    
+  }
+  
   const handleCreate = async () => {
     if (!wallet.isConnected) {
       alert('Please connect wallet first');
@@ -44,10 +74,10 @@ const CreateCoin: React.FC = () => {
     try {
       // 这里实现合约调用创建coin
       console.log('Creating coin with:', form);
-      const formData = new FormData();
-      Object.entries(form).forEach(([k,v])=>{
-        formData.append(k,v);
-      })
+      // const formData = new FormData();
+      // Object.entries(form).forEach(([k,v])=>{
+      //   formData.append(k,v);
+      // })
 
       const uploadUrl = '/api/coincreate';
       console.log("uploadFile:",uploadUrl);
@@ -155,5 +185,3 @@ const CreateCoin: React.FC = () => {
     </div>
   );
 };
-
-export default CreateCoin;

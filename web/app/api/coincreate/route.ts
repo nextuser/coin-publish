@@ -3,7 +3,7 @@ import axios from 'axios';
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { getSuiConfig } from '@/lib/sui/sui_config';
+import suiConfig from '@/lib/suiConfig.json'
 import { MintForm } from '@/lib/types';
 import { PublishCoinParams } from '@/lib/types';
 import { publishCoin,getPublishHttpResponse } from '@/lib/publishCoin';
@@ -28,7 +28,6 @@ function get_string_value(formData:FormData , name :ArgType){
  async function getCoinParams(request:Request){
     const formData = await request.formData();
 
-    const suiConfig = await getSuiConfig();
     let symbol = get_string_value(formData,'symbol');
     let decimals = get_string_value(formData,'decimals');
     let image = get_string_value(formData,'image');
@@ -76,10 +75,9 @@ export async function POST(request: Request) {
   }
   try {
     const param = await getJsonParams(request);
-    const suiConfig = await getSuiConfig();
     console.log("publish coin param:",param);
     const keypair = Ed25519Keypair.deriveKeypair(mnemonic)
-    let result = await publishCoin(param,suiConfig.operator,keypair);
+    let result = await publishCoin(param,keypair);
     let pr  = getPublishHttpResponse(result);
     return NextResponse.json(pr.body,
                               pr.options);

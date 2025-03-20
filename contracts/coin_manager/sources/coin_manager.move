@@ -6,9 +6,11 @@ use sui::sui::SUI;
 use std::string;
 use std::ascii;
 use sui::event::emit;
-use sui::table::{Table,Self};
+//use sui::table::{Table,Self};
 use coin_manager::logger::log;
 use coin_manager::utils::pow;
+use sui::vec_map::{Self,VecMap};
+
 
 const INIT_SUPPLY: u64 = 1000_000_000;
 public struct CoinCreatedEvent has copy,drop{
@@ -37,7 +39,7 @@ public struct Manager has key{
     id : UID,
     owner : address,
     
-    minterOpertaorTable:Table<address,address>,
+    minterToOperator:VecMap<address,address>,
 }
 
 public fun manager_owner(m : &Manager) : address{
@@ -78,7 +80,7 @@ fun init(ctx : &mut TxContext){
         id : object::new(ctx),
         owner : ctx.sender(),
         //minter => operator
-        minterOpertaorTable:table::new(ctx),
+        minterToOperator:vec_map::empty(),
     };
 
     let manager_addr = object::id(&manager).to_address();
@@ -93,7 +95,7 @@ const SUI_DECIMALS : u8 = 9;
 //const TOKEN_FOR_CREATOR : u64 = 1000_000;
 #[allow(lint(self_transfer))]
 public fun register_coin<T >( treasury: TreasuryCap<T>, meta : CoinMetadata<T>, ctx : &mut TxContext  ){
-    let sender = ctx.sender();
+    let creator = ctx.sender();
     let treasury_addr = sui::object::id(&treasury).to_address().to_ascii_string();
     let type_name = std::type_name::get<T>();
     let name = type_name.borrow_string();
@@ -104,11 +106,11 @@ public fun register_coin<T >( treasury: TreasuryCap<T>, meta : CoinMetadata<T>, 
     let  balance = supply.increase_supply(INIT_SUPPLY * token_decimals_value);
 
     // let coin = balance::split(&mut balance,TOKEN_FOR_CREATOR).into_coin(ctx);
-    // transfer::public_transfer(coin,sender);
+    // transfer::public_transfer(coin,creator);
     let vault = CurveVault<T>{
         id : sui::object::new(ctx ),
-        operator : sender,
-        coin_creator : sender,
+        operator : creator,
+        coin_creator : creator,
         total_supply : supply,
         meta:meta,
         curve_balance : balance,
@@ -121,7 +123,7 @@ public fun register_coin<T >( treasury: TreasuryCap<T>, meta : CoinMetadata<T>, 
         vault_address : object::id(&vault).to_address(),
         type_name : * name,
         meta_name : meta_name,
-        minter : sender,
+        minter : creator,
         treasury_address: treasury_addr
     });
     
@@ -131,32 +133,47 @@ public fun register_coin<T >( treasury: TreasuryCap<T>, meta : CoinMetadata<T>, 
 const COIN_CREATE_COST  :u64 = 15_000_000;
 const ERR_BALANCE_NOT_ENOUGH : u64 = 1;
 
-// user  call in browser
+
 #[allow(lint(self_transfer))]
+ //called by user (minter)
 entry public(package) fun  waitToCreate(coin : Coin<SUI> ,operator : address, manager :&mut Manager, ctx : & TxContext){
-    let user =  ctx.sender();
     assert!(coin.value() >= COIN_CREATE_COST ,ERR_BALANCE_NOT_ENOUGH);
     transfer::public_transfer(coin,operator);
-    table::add(&mut manager.minterOpertaorTable,user, operator);
-}
-
-// server call by operator 
-public fun is_creatable_by(user:address,manager :& Manager, ctx : &mut  TxContext) : bool{
-    let operator = ctx.sender();
-    table::contains(&manager.minterOpertaorTable, user) &&
-     table::borrow(&manager.minterOpertaorTable, user) == operator
-}
-
-// server call by operator 
-public fun after_create<T>(user : address,vault : &mut CurveVault<T>,manager:&mut Manager , ctx : &mut TxContext) {
-    let operator = ctx.sender();
-    let op = table::remove(&mut manager.minterOpertaorTable, user);
-    assert!(operator == op);
-    if(vault.operator == operator){
-        vault.coin_creator = user;
+    if(!vec_map::contains(&manager.minterToOperator, &ctx.sender())){
+        vec_map::insert(&mut manager.minterToOperator,ctx.sender(), operator);
     }
 }
 
+//call by operator
+public fun is_creatable_by(minter:address,manager :& Manager, ctx : &mut  TxContext) : bool{
+   
+     let ret = vec_map::try_get(&manager.minterToOperator, &minter) ;
+     ret.is_some() &&  ret.borrow() ==ctx.sender()
+}
+
+
+// server call by operator 
+public fun after_create<T>(user : address,vault : &mut CurveVault<T>,manager:&mut Manager , ctx : &mut TxContext) : bool{
+    let idx_opt = vec_map::get_idx_opt(& manager.minterToOperator,& user);
+    if(idx_opt.is_none()){
+        return false
+    };
+
+    let idx = * idx_opt.borrow();
+
+    let (_,op) = vec_map::remove_entry_by_idx(&mut manager.minterToOperator, idx);
+    if(op != ctx.sender()){
+        return false
+    };
+
+    if(vault.operator == ctx.sender()){
+        vault.coin_creator = user;
+        return true
+    } else{
+        return false
+    }
+
+}
 /**
 totoal value
     k = 1e-16  c = 2.8e-8 
@@ -328,22 +345,5 @@ entry fun make_immutable(cap : sui::package::UpgradeCap){
 public fun init_for_test(ctx:&mut TxContext){
     init(ctx);
 }
-
-//#[test_only]
-// public fun create_vault_for_test<T>(ctx:&mut TxContext){
-//     let sender = ctx.sender();
-//     let vault = CurveVault<T>{
-//         id : sui::object::new(ctx ),
-//         operator : sender,
-//         coin_creator : sender,
-//         total_supply : balance::supply_value,
-//         meta:meta,
-//         curve_balance : balance::empty();,
-//         curve_money : sui::balance::zero(),
-//         token_decimals_value : token_decimals_value as u128,
-//         sui_decimals_value : pow(10,SUI_DECIMALS) as u128
-//     };
-//     vault
-// }
 
 

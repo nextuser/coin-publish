@@ -62,6 +62,7 @@ export type CoinMetadata = {
 
 export type CurveVault = {
     id : UID,
+    operator : string,
     coin_creator : string,
     total_supply : MStruct<Supply>,
     curve_balance : string,

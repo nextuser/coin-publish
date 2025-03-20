@@ -7,9 +7,12 @@ import { getCost } from './sui/sui_client';
 import { Keypair } from "@mysten/sui/cryptography";
 import { get_buy_amount,get_sell_amount } from './coin_curve';
 import { Sevillana } from 'next/font/google';
-import { getSuiConfig } from './sui/sui_config';
+import suiConfig from '@/lib/suiConfig.json';
+import { suiClient } from '@/contracts';
+import { getLocalSigner } from './sui/local_key';
+
 async function getPkgManger()  {
-    return (await getSuiConfig()).coin_manager_pkg
+    return suiConfig.coin_manager_pkg
 }
 
 export  async function queryTransferEvents(suiClient : SuiClient, coin_type : string) : Promise<CoinTransferEvent[]>
@@ -268,13 +271,12 @@ export async function sell(suiClient : SuiClient,
 
 
 
-export async function queryCoinVaults(suiClient :SuiClient, sender?:string): Promise < CurveVault[]>{
-    let suiConfig = await getSuiConfig();
+export async function queryCoinVaults(suiClient :SuiClient, minter?:string): Promise < CurveVault[]>{
     const mananger_package = await getPkgManger();
     const eventType = `${mananger_package}::coin_manager::CoinCreatedEvent`;
     console.log("suiConfig:",suiConfig);
 
-    const query : SuiEventFilter = sender? {Sender:sender} : {MoveEventType : eventType  }
+    const query = {MoveEventType : eventType  }
     console.log("queryCoinVaults query=",query);
     let events_result = await suiClient.queryEvents({
         query
@@ -282,9 +284,7 @@ export async function queryCoinVaults(suiClient :SuiClient, sender?:string): Pro
     let vault_ids = [];
     for(let e of events_result.data){
         const ce = e.parsedJson as CoinCreatedEvent;
-        if(e.type == eventType){
-            vault_ids.push(ce.vault_address);
-        }
+        vault_ids.push(ce.vault_address);
         console.log('event sender,evnet_type',e.sender, e.type)
     }
 
@@ -297,8 +297,10 @@ export async function queryCoinVaults(suiClient :SuiClient, sender?:string): Pro
     let ret =[];
     for(let v of valut_results){
         let c = v.data?.content as unknown as MStruct<CurveVault>;
-        //console.log("valut:", v.data?.content as unknown)
-        ret.push(c.fields)
+        console.log("valut:", v.data?.content as unknown)
+        if(!minter || c.fields.coin_creator == minter){
+            ret.push(c.fields)
+        }
     }
 
     return ret;

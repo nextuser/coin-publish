@@ -70,3 +70,14 @@ export function getLocalSigner(): Ed25519Keypair{
     return signer;
 }
 
+export function getLocalSigners(){
+    let keys = get_keys();
+    let signers = [];
+    for(let key of keys){
+        const secretKeyBytes = fromBase64(key).slice(1)
+        let signer = Ed25519Keypair.fromSecretKey(secretKeyBytes);  
+        signers.push(signer)    
+    }
+    return signers;
+}
+

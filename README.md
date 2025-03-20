@@ -75,11 +75,11 @@ npx tsx publish.t.ts
 
 ### typescript 测试buy 和test, 
 ```bash
-cd web/lib/test
-export COIN_MANAGER_PACKAGE=`cat ../../../contracts/coin_manager/Move.toml |grep -v '#' |grep "^coin_manager" | awk -F '"' '{print($2)}'`
-echo $COIN_MANAGER_PACKAGE
-./1.pub.sh
-source ./2.parse_out.sh 
+cd contracts/coin_manager/
+source ./parse_out.sh
+cd ../../web
+pnpm build
+
 ```
 
 ## 定义operator和 blockvision apikey
