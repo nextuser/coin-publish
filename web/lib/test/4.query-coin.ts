@@ -3,9 +3,10 @@ import { suiClient } from '@/contracts';
 import dotenv from 'dotenv';
 import { CoinTransferEvent } from '../types';
 import { get_token_value } from '../coin_curve';
+import suiConfig from '@/lib/suiConfig.json'
 dotenv.config();
-const CURVE  = process.env.VAULT;
-const manager = process.env.COIN_MANAGER_PACKAGE || '';
+const VAULT  = process.env.VAULT;
+const manager_pkg = suiConfig.coin_manager_pkg;
 
 const ownerMap:Map<string,bigint> = new Map<string,bigint>
 
@@ -22,7 +23,7 @@ async function query(coin_type:string)
 
     // 定义事件过滤器，监听CoinBalanceChange事件
     const eventFilter: SuiEventFilter = {
-        MoveEventType: `${manager}::coin_manager::CoinTransferEvent`, // Sui标准代币余额变化事件
+        MoveEventType: `${manager_pkg}::coin_manager::CoinTransferEvent`, // Sui标准代币余额变化事件
     };
 
     let cursor = null;
@@ -58,7 +59,11 @@ async function query(coin_type:string)
     console.log(ownerMap);
 }
 let  cointype = process.env.COIN_TYPE||'';
-if(cointype.length > 0 ) query(cointype);
+if(cointype.length > 0 ){
+     query(cointype);
+} else{
+    console.error('export COIN_TYPE=... first ');
+}
 
 
 

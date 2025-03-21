@@ -28,6 +28,7 @@ type UID ={
 export type Result = {
   isSucc :boolean,
   errMsg? : string,
+  data ? : any
 }
 
 type Supply = {

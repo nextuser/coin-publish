@@ -1,16 +1,11 @@
-import { queryCreatedEvents , getSupply,getVault,queryTransferEvents,  sell_by_amount } from "../coin_info";
+import { queryCreatedEvents , getSupply,getVault,queryTransferEvents } from "../coin_info";
 import { CoinTransferEvent,CoinCreatedEvent, CurveVault } from "../types";
 import {get_buy_amount,get_sell_amount} from '../coin_curve'
 import {getSigner,getLocalSigner} from '../sui/local_key';
-import { SuiClient,getFullnodeUrl,GasCostSummary,TransactionEffects,SuiEvent } from '@mysten/sui/client';
-import { test_env as env } from "../sui/config";
-import { Transaction } from "@mysten/sui/transactions";
-import { sign } from "crypto";
-import { getCost } from "../sui/sui_client";
+import { SuiClient,getFullnodeUrl,SuiEvent } from '@mysten/sui/client';
 import dotenv from 'dotenv';
-import { buy ,sell} from "../coin_info";
+import { buy ,sell_by_amount} from "../coin_operate";
 import {getTypeByMeta} from '@/lib/utils'
-import { exit } from "process";
 dotenv.config();
 
 function show_transfer_header(){
@@ -23,6 +18,11 @@ function show_transfer_header(){
     'from', 
     'to', 
     ); 
+}
+
+if(!process.env.VAULT){
+    console.error("export VAULT=....")
+    process.exit(-1)
 }
 function show_transfer_event(e : CoinTransferEvent|null,vault :CurveVault | null , fee : bigint){
     if(e == null || vault == null){

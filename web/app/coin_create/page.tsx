@@ -45,7 +45,7 @@ export default function CoinCreate(): React.ReactNode {
     return <div>Please connect your SUI wallet to create a coin </div>;
   }
   
-    async function preCreate(  cb: ()=>Promise<void>) : Promise<Result> {
+  async function preCreate(  cb: ()=>Promise<void>) : Promise<Result> {
     const tx = getPrecreateTx(suiConfig.operator);
     let ret : Result = {isSucc:true};
     await signAndExecuteTransaction({transaction:tx},{
@@ -59,7 +59,6 @@ export default function CoinCreate(): React.ReactNode {
       }
     });
     return ret;
- 
   }
   
   const create_coin = async ()=>{
@@ -94,7 +93,7 @@ export default function CoinCreate(): React.ReactNode {
     }
   }
   
-    const handleCreate = async () => {
+  const handleCreate = async () => {
     const result = await preCreate( create_coin);
 
     console.log("precreate result:",result);
@@ -106,9 +105,7 @@ export default function CoinCreate(): React.ReactNode {
 
 
   return (
-    
     <div className="create-coin w-800 ">
-
       <center>
       <div className="grid grid-cols-2 gap-4">
             <label htmlFor="Name" className="block text-sm font-medium text-gray-700">Name</label>
@@ -156,8 +153,7 @@ export default function CoinCreate(): React.ReactNode {
       </div>
       { pr && pr.isSucc && <div>
         {pr.publish_digest && (
-          <div className="grid grid-cols-1 gap-4  w-800">
-        
+        <div className="grid grid-cols-1 gap-4  w-800">
           <div><CopyButton display={pr.publish_digest!} copy_value={pr.publish_digest!} size={20} fontSize={12}></CopyButton></div>
           <div><ViewTransaction size={20} fontSize={12} txId={pr.publish_digest!}></ViewTransaction></div>
         </div>)
@@ -170,9 +166,7 @@ export default function CoinCreate(): React.ReactNode {
         <Link href={`/coins_by/${account?.address}`}>My Coins</Link>
         </div>
       }
-
-      { pr && !pr.isSucc && <p>{pr.errMsg}</p>    
-      }
+      { pr && !pr.isSucc && <p>{pr.errMsg}</p>}
       </center>
       
     </div>

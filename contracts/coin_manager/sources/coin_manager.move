@@ -250,9 +250,10 @@ const K : u128 = 1; // 放大1e16 倍
 const C : u128 = 280_000_000; // 放大1e16 倍
 const AMPLIFY : u128 = 10_000_000_000_000_000; // 放大1e16 倍
 //const SUI_AMPLIFY : u64 = 1_000_000_000;
-const ERR_NO_NOUGH_BALANCE : u64 = 1;
-
-
+const ERR_NO_NOUGH_BALANCE_IN_COIN : u64 = 1;
+const ERR_NO_NOUGH_BALANCE_IN_VAULT : u64 = 2;
+//token => sui , sui => token 可能有细微偏差.
+const MIN_DIFF_MIST :u64 = 10;
 #[allow(lint(self_transfer))]
 public fun buy<T>(mut pay : Coin<SUI>, target_amount :u64,vault : &mut CurveVault<T>,ctx : &mut TxContext ) : ( Coin<T>, u64,u64) {
     let sp =  (balance::supply_value<T>(&vault.total_supply) - balance::value<T>(&vault.curve_balance));
@@ -270,11 +271,11 @@ public fun buy<T>(mut pay : Coin<SUI>, target_amount :u64,vault : &mut CurveVaul
     let pay_value = pay.balance().value() ;
     log(b"diff:",&am);
     log(b"pay_value",& pay_value);
-    assert!( pay_value >= am,ERR_NO_NOUGH_BALANCE);
+    assert!( pay_value >= am,ERR_NO_NOUGH_BALANCE_IN_COIN);
 
     log(b"diff",&am);
-    if(pay_value == am){
-        // transfer::public_transfer(pay, vault.coin_creator);
+    //差值不大,不做split
+    if(pay_value - am < MIN_DIFF_MIST){
         vault.curve_money.join(pay.into_balance());
     }
     else{
@@ -304,7 +305,9 @@ entry public fun entry_buy<T>(pay : Coin<SUI>, target_amount :u64,vault : &mut C
     })
 }
 
-
+/**
+因为可能浮点运算,导致计算出出来的token => sui 算出来的值和vault.curve_money 有一个细微的偏差.
+*/
 #[allow(lint(self_transfer))]
 public fun sell<T>(token : Coin<T> ,vault : &mut CurveVault<T>,ctx : &mut TxContext ) : (Coin<SUI>,u64)  {
     let token_amount  = token.value();
@@ -321,9 +324,20 @@ public fun sell<T>(token : Coin<T> ,vault : &mut CurveVault<T>,ctx : &mut TxCont
     let tm1 = (K * sp1 * sp1 + C * sp1 * tdv)  /tdv * sdv / tdv ;
 
     let am  = ((tm0 - tm1) / AMPLIFY  ) as u64;
-    let coin = vault.curve_money.split(am).into_coin(ctx);
+    let vault_balance = vault.curve_money.value();
     vault.curve_balance.join(token.into_balance());
-    (coin,sp)
+    let coin;
+    if(am <= vault_balance){
+        coin = vault.curve_money.split(am).into_coin(ctx);
+        return (coin,sp)
+    } else if (am < vault_balance + MIN_DIFF_MIST){
+        coin = vault.curve_money.split(vault_balance).into_coin(ctx);
+        return (coin,sp)
+    } else{
+        abort ERR_NO_NOUGH_BALANCE_IN_VAULT
+    }
+    
+    
 }
 
 entry public fun entry_sell<T>(token : Coin<T>,vault : &mut CurveVault<T>,ctx : &mut TxContext )  {

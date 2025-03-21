@@ -33,26 +33,23 @@ export function get_token_value(s :number) :number{
     return K * s * s + C * s;
 }
 
-const Decimal = 10e6;
-export function get_buy_amount(s0 :number, sui_amount:number) :[number,number]{
+export function get_buy_amount(s0 :number, sui_amount:number, decimals =6) :[number,number]{
+    const decimal_value = 10 ** decimals;
     let b = 2*K*s0 + C;
     let a = K;
     let c = -sui_amount;
 
     let u = Math.sqrt( b**2  - 4*a*c) - b;
     let delta  = u/(2*K);
-    delta = Math.floor(delta * Decimal)/Decimal;
-    ///console.log('delta:',delta);
-    // 验算
+    //保留6位小数
+    delta = Math.floor(delta * decimal_value)/decimal_value;
+
     let  s1 = s0 + delta;
     let tv1 = K * s1 * s1 + C * s1;
     let tv0 = K * s0 * s0 + C * s0;
    
     let diff = tv1 -  tv0
 
-    // console.log('s1',s1);
-    // console.log('t0 t1',tv0,tv1);
-    // console.log("tv1 - t0 vs sui_amount, left", diff , sui_amount,sui_amount - diff);
     return [delta,s1];
 }
 
@@ -62,10 +59,7 @@ export function get_sell_amount(s0 : number, delta : number) :[number,number]{
     let tv1 = K * s1 * s1 + C * s1;
     let tv0 = K * s0 * s0 + C * s0;
     let diff = tv0 -  tv1;
-
-    ///onsole.log('s1',s1);
-    //console.log('t0 t1',tv0,tv1);
-    //console.log("tv1 - t0 vs sui_amount, left", diff , diff);
+    diff = Math.floor(diff * 1e9)/1e9
     return [diff, s1];
 }
 

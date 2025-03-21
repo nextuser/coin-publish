@@ -22,7 +22,7 @@ module coin_simple::template {
         let (treasury, metadata) = coin::create_currency(
             witness, DECIMALS, SYMBOL, NAME, DESCRIPTION,image_url, ctx
         );
-       
+       //这是为了未来管理coin,提供一个管理模块
         coin_manager::register_coin(treasury,metadata,ctx);
     }
 
@@ -31,6 +31,5 @@ module coin_simple::template {
         let witness = TEMPLATE{};
         init(witness, ctx);
     }
-    
 
 }

@@ -24,15 +24,11 @@ type DumpFormat ={
 
 import module_bytes from './coin_bytecode.json'
 function readCoinTemplateBytes() : [ Uint8Array,string[]]{
-    //let file = path.resolve(__dirname, './coin_bytecode.json');
-    //let json = JSON.parse(String(fs.readFileSync(file))) as DumpFormat;
+
     let bytecode : Uint8Array =  fromBase64(module_bytes.modules[0]);
-    ///console.log("readCoinTemplateBytes hex:",toHex(bytecode));
+    //校验 json中的coin_manager package应该和suiConfig里面的coin_manager_pkg 匹配
     const pkg = normaize_address(suiConfig.coin_manager_pkg);
     if(module_bytes.dependencies.indexOf(pkg) == -1){
-        console.log("coin_bytecode.json dependencies do not contains  coin_manager pakcage , run  contracts/coin_simple/dump.sh first ");
-        console.log('dependencies:', module_bytes.dependencies);
-        console.log('COIN_MANAGER_PKG:',suiConfig.coin_manager_pkg)
         process.exit(-1)
     }
     return [bytecode,module_bytes.dependencies];
@@ -91,16 +87,11 @@ export async function isCreatable(suiClient : SuiClient , minter : string, opera
     return false;
 }
 
-const INITIAL_SUPPLY = 1000_000_000;
-export async function publishCoin(params : PublishCoinParams,  keypair : Keypair) : Promise<PublishResult>{
+export async function publishCoin(params : PublishCoinParams,  signer : Keypair) : Promise<PublishResult>{
 
     let publishResult : PublishResult = {isSucc:true};
-    //let version = template.version();
-    //console.log(version);
-    //console.log("publish coin");
 
     let [bytecode,deps] = readCoinTemplateBytes();
-    //console.log("bytecode length :",bytecode.length);
     
     let jsonRet = template.deserialize(bytecode);
     let bytes = template.serialize(jsonRet);
@@ -162,15 +153,6 @@ export async function publishCoin(params : PublishCoinParams,  keypair : Keypair
         'Vector(U8)', // type of the constant
     );
 
-
-       // Update URL
-    updated = template.update_constants(
-        updated,
-        bcs.u64().serialize(INITIAL_SUPPLY).toBytes(), // new value
-        bcs.u64().serialize('1000000').toBytes(), // current value
-        'U64', // type of the constant
-    );
-    let signer = keypair;
     const operator = signer.getPublicKey().toSuiAddress();
 
     let tx = new Transaction();
