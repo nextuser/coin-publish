@@ -8,11 +8,12 @@ import { fromBase64,fromHex,toHex } from '@mysten/bcs';
 import { SuiClient,getFullnodeUrl } from '@mysten/sui/client';
 import { test_env as env } from "./sui/config";
 import { Keypair } from '@mysten/sui/cryptography';
-import { getCost } from './sui/sui_client';
+import { getCost } from './sui/sui_utils';
 import { CoinCreatedEvent,PublishCoinParams,PublishResult,HttpPublishResponse, CurveVault } from './types';
 import suiConfig from '@/lib/suiConfig.json'; 
 import { normaize_address } from './utils';
 import { Result } from './types';
+import { readCoinTemplateBytes } from '@/lib/sui/sui_utils';
 
 type DumpFormat ={
     modules : string[],
@@ -20,17 +21,7 @@ type DumpFormat ={
     digest : Uint8Array[]
 }
 
-import module_bytes from './coin_bytecode.json'
-function readCoinTemplateBytes() : [ Uint8Array,string[]]{
 
-    let bytecode : Uint8Array =  fromBase64(module_bytes.modules[0]);
-    //校验 json中的coin_manager package应该和suiConfig里面的coin_manager_pkg 匹配
-    const pkg = normaize_address(suiConfig.coin_manager_pkg);
-    if(module_bytes.dependencies.indexOf(pkg) == -1){
-        process.exit(-1)
-    }
-    return [bytecode,module_bytes.dependencies];
-}
 
 
 //public fun after_create<T>(user : address,vault : &mut CurveVault<T>,manager:&mut Manager , ctx : &mut TxContext)
@@ -88,7 +79,9 @@ export async function isCreatable(suiClient : SuiClient , minter : string, opera
 export async function publishCoin(params : PublishCoinParams,  signer : Keypair, wasmUrl? :string) : Promise<PublishResult>{
 
     let publishResult : PublishResult = {isSucc:true};
-    let [bytecode,deps] = readCoinTemplateBytes();
+    const ct = readCoinTemplateBytes();
+    const bytecode = ct.bytecode;
+    const deps = ct.dependencies;
     if(wasmUrl){
         template.init_url(wasmUrl);
     } else{

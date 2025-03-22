@@ -2,7 +2,15 @@
 let imports = {};
 imports['__wbindgen_placeholder__'] = module.exports;
 let wasm;
-const { TextEncoder, TextDecoder } = require(`util`);
+///const { TextEncoder, TextDecoder } = require(`util`);
+
+// 检查是否支持 TextEncoder
+if (typeof TextEncoder === 'undefined') {
+    // 使用 polyfill
+    const { TextEncoder } = require('text-encoding');
+    global.TextEncoder = TextEncoder;
+}
+
 
 const heap = new Array(128).fill(undefined);
 
@@ -739,27 +747,10 @@ module.exports.__wbindgen_throw = function(arg0, arg1) {
 };
 
 module.exports.__inited = false;
-module.exports.init_local = function(){
-    if(module.exports.__inited) return;
-    module.exports.__inited = true;
-    //todo nextjs 通过web server访问的时候, 往往加载move_bytecode_template_bg.wasm 错误
-    const workdir = process.env.npm_config_local_prefix || process.cwd();
-    //console.log("cwd", workdir);
-    
-    const path = require('path').join(workdir,'pkg', 'move_bytecode_template_bg.wasm');
-    console.log('wasm path');
-    const bytes = require('fs').readFileSync(path);
-
-    const wasmModule = new WebAssembly.Module(bytes);
-    const wasmInstance = new WebAssembly.Instance(wasmModule, imports);
-    wasm = wasmInstance.exports;
-
-    module.exports.__wasm = wasm;
-}
 
 module.exports.init_url = async function(wasmUrl){
     if(module.exports.__inited) return;
-    module.exports.__inited = true;
+    
     try {
         // 下载 WASM 文件
         const response = await fetch(wasmUrl);
@@ -767,15 +758,6 @@ module.exports.init_url = async function(wasmUrl){
         const wasmModule = new WebAssembly.Module(buffer);
         const wasmInstance = new WebAssembly.Instance(wasmModule, imports);
         wasm = wasmInstance.exports;
-
-        // 调用 WASM 模块中的函数（假设 WASM 模块中有一个名为 'add' 的函数）
-        if (instance.exports.add) {
-            const result = instance.exports.add(2, 3);
-            console.log('WASM add function result:', result);
-        } else {
-            console.error('WASM module does not export an "add" function.');
-        }
-        module.exports.__wasm = wasm;
 
     } catch (error) {
         console.error('Error loading or running WASM:', error);

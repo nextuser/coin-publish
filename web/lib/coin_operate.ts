@@ -1,7 +1,7 @@
 import { SuiClient,SuiEvent,CoinStruct,  } from '@mysten/sui/client';
 import { Transaction,TransactionArgument } from '@mysten/sui/transactions';
 import { CoinCreatedEvent , CoinTransferEvent, CurveVault } from './types';
-import { getCost } from './sui/sui_client';
+import { getCost } from './sui/sui_utils';
 import { Keypair } from "@mysten/sui/cryptography";
 import { get_buy_amount,get_sell_amount } from './coin_curve';
 import { getTypeByMeta } from './utils';
