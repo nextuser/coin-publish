@@ -9,6 +9,8 @@ import { getBuyTx ,getSellTx} from '@/lib/coin_operate';
 import { getTypeByMeta } from '@/lib/utils';
 import {getTransferEvent} from '@/lib/coin_info'
 import { getNormalizeSupply } from '@/lib/coin_info';
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 async function getVault(suiClient : SuiClient,addr : string){
   let object =  await suiClient.getObject({id : addr,  options:{ showContent : true}});
   if(object.data?.content?.dataType == 'moveObject'){
@@ -65,6 +67,8 @@ export default function CoinDetail(): React.ReactNode  {
   const [transferEvent,setTransferEvent] = useState<CoinTransferEvent|null>(null);
   const [user_sui_balance, setUserSuiBalance] = useState(0)
   const [user_token_balance,setUserTokenBalance] = useState(0)
+  const [buyRange,setBuyRange] = useState(0)
+  const [sellRange,setSellRange] = useState(0)
 
   async function init_call(suiClient : SuiClient,vault_addr : string, user_addr :string|null|undefined){
     const vault = await getVault(suiClient,vault_addr)
@@ -147,12 +151,14 @@ export default function CoinDetail(): React.ReactNode  {
   }
 
   function changeBuyPercent(percent :number){
+    setBuyRange(percent);
     const amount = percent *  user_sui_balance / 100;
     changeBuyAmount(amount)
+    
   }
 
   function changeBuyAmount(amount : number){
-   
+    
     setBuyAmount(amount);
     let [token_amount , _ ] = get_buy_amount(tokenSupply,amount,Number(vault?.meta.fields.decimals))
     setBuyToken(token_amount);
@@ -160,6 +166,7 @@ export default function CoinDetail(): React.ReactNode  {
   }
 
   function changeSellPercent(percent: number){
+    setSellRange(percent)
     const token_delata = percent *  user_token_balance / 100;
     changeSellToken(token_delata);
   }
@@ -205,61 +212,98 @@ export default function CoinDetail(): React.ReactNode  {
         <div className="trade-section">
           <div className="tabs">
  
-            <button 
+            <Button 
               className={activeTab === 'buy' ? 'active' : ''} 
               onClick={() => setActiveTab('buy')}
             >
               Buy
-            </button>
-            <button 
+            </Button>
+            <Button 
               className={activeTab === 'sell' ? 'active' : ''} 
               onClick={() => setActiveTab('sell')}
             >
               Sell
-            </button>
+            </Button>
           </div>
 
           {activeTab === 'buy' ? (
-            <div className="trade-panel">
-              <p>Max: {user_sui_balance} SUI</p>
-              <input 
+            <div className="trade-panel wx-300">
+              <label >Max: {user_sui_balance} SUI</label>
+              <div>
+              <Input 
                 type="number" 
-                value={buyAmount} 
+                name="buyPaySui"
+                value={buyAmount}
+                min={0}
+                max={user_sui_balance} 
                 onChange={(e) => changeBuyAmount(Number(e.target.value))} 
               />
-              <p>Token : {buyToken} </p>
-              <div className="quick-buttons mx-4">
-                <button className='mx-2' onClick={() => changeBuyPercent(0 )}>Reset</button>
-                <button className='mx-2' onClick={() => changeBuyPercent(25)}>25%</button>
-                <button className='mx-2' onClick={() => changeBuyPercent(50 )}>50%</button>
-                <button className='mx-2' onClick={() => changeBuyPercent(75 )}>75%</button>
-                <button className='mx-2'onClick={() => changeBuyPercent(  100)}>100%</button>
               </div>
-              <button onClick={ (e)=>{Buy()} }> place trade </button>
+              <div>
+              <input 
+                type="range" 
+                name="buyRange"
+                value={buyRange}
+                min={0}
+                max={100} 
+                onChange={(e) => changeBuyPercent(Number(e.target.value))} 
+              />
+              </div>
+              
+              
+              <div className="quick-buttons mx-4">
+                <Button variant='percent' onClick={() => changeBuyPercent(0 )}>Reset</Button>
+                <Button variant='percent' onClick={() => changeBuyPercent(25)}>25%</Button>
+                <Button variant='percent' onClick={() => changeBuyPercent(50 )}>50%</Button>
+                <Button variant='percent' onClick={() => changeBuyPercent(75 )}>75%</Button>
+                <Button variant='percent' onClick={() => changeBuyPercent(  100)}>100%</Button>
+              </div>
+              <div><label>Token : {buyToken} </label></div>
+              <Button variant='submit' onClick={ (e)=>{Buy()} } > Buy </Button>
             </div>
           ) : (
-            <div className="trade-panel">
-              <p>Max: {user_token_balance} {vault.meta.fields.symbol}</p>
-       
-              <input 
+            <div className="trade-panel wx-300">
+              <label>Max: {user_token_balance} {vault.meta.fields.symbol}</label>
+              <div>
+              <Input 
+                name="sellTokenNum"
                 type="number" 
                 value={sellToken} 
                 onChange={(e) => changeSellToken(Number(e.target.value))} 
               />
-              <p>estimate gain : {gain} SUI</p>
-              <div className="quick-buttons max-4">
-                <button className='mx-2' onClick={() => changeSellPercent(0 )}>Reset</button>
-                <button className='mx-2' onClick={() => changeSellPercent(25)}>25%</button>
-                <button className='mx-2' onClick={() => changeSellPercent(50)}>50% </button>
-                <button className='mx-2' onClick={() => changeSellPercent(75 )}>75%</button>
-                <button className='mx-2' onClick={() => changeSellPercent(100 )}>100%</button>
               </div>
-              <button onClick={ (e)=>{Sell()} }> place trade </button>
+              <div>
+
+              <input 
+                name="sellTokenRange"
+                type="range" 
+                min={0}
+                max={100}
+
+                value={sellRange} 
+                onChange={(e) => changeSellPercent(Number(e.target.value))} 
+              />
+
+              </div>
+              
+              <div className="quick-buttons max-4">
+                <Button variant='percent'   onClick={() => changeSellPercent(0 )}>Reset</Button>
+                <Button variant='percent'   onClick={() => changeSellPercent(25)}>25%</Button>
+                <Button variant='percent'   onClick={() => changeSellPercent(50)}>50% </Button>
+                <Button variant='percent'   onClick={() => changeSellPercent(75 )}>75%</Button>
+                <Button variant='percent'   onClick={() => changeSellPercent(100 )}>100%</Button>
+              </div>
+              <div><label>estimate gain : {gain} SUI</label></div>
+              <Button variant='submit' onClick={ (e)=>{Sell()} }> Sell </Button>
               <hr/>
               {transferEvent && 
               <div>
-                <p>{vault.meta.fields.symbol} :{transferEvent.token_from } ===&gt; {transferEvent.token_to}: {transferEvent.token_amount} </p>
-                <p>SUI: {Number(transferEvent.sui_amount)/Number(vault.sui_decimals_value)} </p>
+                <p>Token:{vault.meta.fields.symbol} :<br/></p>
+                <p>from:{transferEvent.token_from } <br/>
+                to: {transferEvent.token_to}: {transferEvent.token_amount}
+                </p>
+                <p>SUI:</p>
+                <p> {Number(transferEvent.sui_amount)/Number(vault.sui_decimals_value)} </p>
               </div>
               }
               
