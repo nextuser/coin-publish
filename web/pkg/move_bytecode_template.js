@@ -738,15 +738,44 @@ module.exports.__wbindgen_throw = function(arg0, arg1) {
     throw new Error(getStringFromWasm0(arg0, arg1));
 };
 
-const filename = import.meta.url; // 获取当前文件的路径
-//todo nextjs 通过web server访问的时候, 往往加载move_bytecode_template_bg.wasm 错误
-const workdir = process.env.npm_config_local_prefix || process.cwd();
-//console.log("cwd", workdir);
-const path = require('path').join(workdir,'pkg', 'move_bytecode_template_bg.wasm');
-const bytes = require('fs').readFileSync(path);
+module.exports.init_local = function(){
+    //todo nextjs 通过web server访问的时候, 往往加载move_bytecode_template_bg.wasm 错误
+    const workdir = process.env.npm_config_local_prefix || process.cwd();
+    //console.log("cwd", workdir);
+    
+    const path = require('path').join(workdir,'pkg', 'move_bytecode_template_bg.wasm');
+    console.log('wasm path');
+    const bytes = require('fs').readFileSync(path);
 
-const wasmModule = new WebAssembly.Module(bytes);
-const wasmInstance = new WebAssembly.Instance(wasmModule, imports);
-wasm = wasmInstance.exports;
-module.exports.__wasm = wasm;
+    const wasmModule = new WebAssembly.Module(bytes);
+    const wasmInstance = new WebAssembly.Instance(wasmModule, imports);
+    wasm = wasmInstance.exports;
+
+    module.exports.__wasm = wasm;
+}
+
+module.exports.init_url = async function(wasmUrl){
+
+    try {
+        // 下载 WASM 文件
+        const response = await fetch(wasmUrl);
+        const buffer = await response.arrayBuffer();
+        const wasmModule = new WebAssembly.Module(buffer);
+        const wasmInstance = new WebAssembly.Instance(wasmModule, imports);
+        wasm = wasmInstance.exports;
+
+        // 调用 WASM 模块中的函数（假设 WASM 模块中有一个名为 'add' 的函数）
+        if (instance.exports.add) {
+            const result = instance.exports.add(2, 3);
+            console.log('WASM add function result:', result);
+        } else {
+            console.error('WASM module does not export an "add" function.');
+        }
+        module.exports.__wasm = wasm;
+
+    } catch (error) {
+        console.error('Error loading or running WASM:', error);
+    }
+}
+
 

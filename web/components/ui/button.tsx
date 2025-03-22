@@ -17,9 +17,9 @@ const buttonVariants = cva(
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80",
         percent:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 w-10 h-4 border border-input",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 w-8 h-2 border border-input text-sm",
         ghost: "hover:bg-accent hover:text-accent-foreground",
-        submit : "bg-primary/80 text-primary-foreground hover:bg-secondary/60 border border-input",
+        action : "bg-primary/80 text-primary-foreground hover:bg-primary/60 border border-input",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {

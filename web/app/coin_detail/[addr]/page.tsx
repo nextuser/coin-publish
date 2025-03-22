@@ -11,6 +11,10 @@ import {getTransferEvent} from '@/lib/coin_info'
 import { getNormalizeSupply } from '@/lib/coin_info';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { NumberInput } from '@/components/NumberInput';
+
+
 async function getVault(suiClient : SuiClient,addr : string){
   let object =  await suiClient.getObject({id : addr,  options:{ showContent : true}});
   if(object.data?.content?.dataType == 'moveObject'){
@@ -190,68 +194,38 @@ export default function CoinDetail(): React.ReactNode  {
   if(vault == null){
     return <p>can not find vault for {vault_addr}</p>
   }
-  return (
-    <div className="coin-detail">
-      
-      <h1>Coin Details</h1>
-      <div className="content">
-      {/* 
-        <div className="kline-section">
-          <select value={timeFrame} onChange={(e) => setTimeFrame(e.target.value)}>
-            <option value="1m">1 Minute</option>
-            <option value="5m">5 Minutes</option>
-            <option value="30m">30 Minutes</option>
-            <option value="1h">1 Hour</option>
-            <option value="1d">1 Day</option>
-            <option value="5d">5 Days</option>
-          </select>
-
-          <div className="kline-chart">K-Line Chart Placeholder</div>
-        </div> */}
-
-        <div className="trade-section">
-          <div className="tabs">
- 
-            <Button 
-              className={activeTab === 'buy' ? 'active' : ''} 
-              onClick={() => setActiveTab('buy')}
-            >
-              Buy
-            </Button>
-            <Button 
-              className={activeTab === 'sell' ? 'active' : ''} 
-              onClick={() => setActiveTab('sell')}
-            >
-              Sell
-            </Button>
-          </div>
-
-          {activeTab === 'buy' ? (
+  return (<div>
+           <Tabs defaultValue="buy" className="w-[400px]">
+          <TabsList>
+            <TabsTrigger value="buy">Buy</TabsTrigger>
+            <TabsTrigger value="sell">Sell</TabsTrigger>
+          </TabsList>
+            <TabsContent value="buy">
             <div className="trade-panel wx-300">
               <label >Max: {user_sui_balance} SUI</label>
               <div>
-              <Input 
-                type="number" 
+              <NumberInput 
                 name="buyPaySui"
                 value={buyAmount}
+                decimalScale = {9}
                 min={0}
                 max={user_sui_balance} 
-                onChange={(e) => changeBuyAmount(Number(e.target.value))} 
+                prefix='SUI : '
+                onValueChange={(v: number | undefined) => changeBuyAmount(v ? v : 0)} 
               />
               </div>
               <div>
-              <input 
+              <Input 
                 type="range" 
                 name="buyRange"
                 value={buyRange}
+                className="px-0 "
                 min={0}
                 max={100} 
                 onChange={(e) => changeBuyPercent(Number(e.target.value))} 
               />
               </div>
-              
-              
-              <div className="quick-buttons mx-4">
+              <div className="quick-buttons mx-2">
                 <Button variant='percent' onClick={() => changeBuyPercent(0 )}>Reset</Button>
                 <Button variant='percent' onClick={() => changeBuyPercent(25)}>25%</Button>
                 <Button variant='percent' onClick={() => changeBuyPercent(50 )}>50%</Button>
@@ -259,34 +233,38 @@ export default function CoinDetail(): React.ReactNode  {
                 <Button variant='percent' onClick={() => changeBuyPercent(  100)}>100%</Button>
               </div>
               <div><label>Token : {buyToken} </label></div>
-              <Button variant='submit' onClick={ (e)=>{Buy()} } > Buy </Button>
+              <Button variant='action' disabled={buyAmount<=0} onClick={ (e)=>{Buy()} } > Buy </Button>
             </div>
-          ) : (
+
+            </TabsContent>
+            <TabsContent value="sell">
             <div className="trade-panel wx-300">
               <label>Max: {user_token_balance} {vault.meta.fields.symbol}</label>
               <div>
-              <Input 
+              <NumberInput 
                 name="sellTokenNum"
-                type="number" 
+                min = {0}
+                decimalScale = {Number(vault.meta.fields.decimals)}
+                max = {user_token_balance}
                 value={sellToken} 
-                onChange={(e) => changeSellToken(Number(e.target.value))} 
+                prefix={`${vault.meta.fields.symbol} :`}
+                onValueChange={(v? :number) => changeSellToken(Number(v? v:0))} 
               />
               </div>
               <div>
 
-              <input 
+              <Input
                 name="sellTokenRange"
                 type="range" 
                 min={0}
                 max={100}
 
+                className="px-0 "
                 value={sellRange} 
                 onChange={(e) => changeSellPercent(Number(e.target.value))} 
               />
-
               </div>
-              
-              <div className="quick-buttons max-4">
+              <div className="quick-buttons mx-2">
                 <Button variant='percent'   onClick={() => changeSellPercent(0 )}>Reset</Button>
                 <Button variant='percent'   onClick={() => changeSellPercent(25)}>25%</Button>
                 <Button variant='percent'   onClick={() => changeSellPercent(50)}>50% </Button>
@@ -294,27 +272,26 @@ export default function CoinDetail(): React.ReactNode  {
                 <Button variant='percent'   onClick={() => changeSellPercent(100 )}>100%</Button>
               </div>
               <div><label>estimate gain : {gain} SUI</label></div>
-              <Button variant='submit' onClick={ (e)=>{Sell()} }> Sell </Button>
+              <Button variant='action' disabled={sellToken<=0} onClick={ (e)=>{Sell()} }> Sell </Button>
               <hr/>
-              {transferEvent && 
-              <div>
-                <p>Token:{vault.meta.fields.symbol} :<br/></p>
-                <p>from:{transferEvent.token_from } <br/>
-                to: {transferEvent.token_to}: {transferEvent.token_amount}
-                </p>
-                <p>SUI:</p>
-                <p> {Number(transferEvent.sui_amount)/Number(vault.sui_decimals_value)} </p>
-              </div>
-              }
+              
               
           </div>
+            </TabsContent>
 
-            
-          )}
-
-         
+          </Tabs>
+          <div>
+          {transferEvent && 
+            <div>
+              <p>Token:{vault.meta.fields.symbol} :<br/></p>
+              <p>from:{transferEvent.token_from } <br/>
+              to: {transferEvent.token_to}: {transferEvent.token_amount}
+              </p>
+              <p>SUI:</p>
+              <p> {Number(transferEvent.sui_amount)/Number(vault.sui_decimals_value)} </p>
+            </div>
+        }
         </div>
-      </div>
-    </div>
+        </div>
   );
 };

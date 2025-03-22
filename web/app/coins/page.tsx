@@ -46,7 +46,7 @@ export default function CoinList(): React.ReactNode {
     <div className="coin-list">
 
       <h1>SUI Coins</h1>
-      <div className="grid grid-cols-3 grid-rows-4">
+      <div style={{display:"flex",flexWrap:"wrap", alignItems:"flex-start", justifyContent:"flex-start"}}>
         {
             vaults.map(vault  => {
               return (<VaultUI key={vault.id.id} vault={vault}></VaultUI>)

@@ -21,6 +21,7 @@ import  suiConfig from '@/lib/suiConfig.json'
 import { Result } from '@/lib/types';
 import { NextPage } from 'next';
 import { getPrecreateTx} from '@/lib/publish_client';
+import { Button } from '@/components/ui/button';
 
 export default function CoinCreate(): React.ReactNode {
   
@@ -149,7 +150,7 @@ export default function CoinCreate(): React.ReactNode {
             onChange={(e) => setForm({...form, description: e.target.value})} 
             />
 
-        <button onClick={(e)=>{ handleCreate()}}  disabled={!wallet.isConnected}>Create Coin</button>
+        <Button variant="action" onClick={(e)=>{ handleCreate()}}  disabled={!wallet.isConnected}>Create Coin</Button>
       </div>
       { pr && pr.isSucc && <div>
         {pr.publish_digest && (

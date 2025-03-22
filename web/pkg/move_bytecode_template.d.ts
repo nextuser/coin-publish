@@ -67,6 +67,10 @@ export function get_constants(binary: Uint8Array): any;
  * Serialize the JSON module into a `Uint8Array` (bytecode).
  */
 export function serialize(json_module: any): Uint8Array;
+
+export function init_local();
+
+export async function init_url(url:string);
 /**
  * A transformed constant from the constant pool.
  */

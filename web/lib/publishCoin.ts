@@ -1,5 +1,3 @@
-import fs from 'fs';
-import path from 'path';
 import { bcs } from '@mysten/bcs';
 //import bytecode_template from '@mysten/move-bytecode-template/move_bytecode_template/move_bytecode_template';
 //import * as template from  'move-bytecode-template';
@@ -87,11 +85,15 @@ export async function isCreatable(suiClient : SuiClient , minter : string, opera
     return false;
 }
 
-export async function publishCoin(params : PublishCoinParams,  signer : Keypair) : Promise<PublishResult>{
+export async function publishCoin(params : PublishCoinParams,  signer : Keypair, wasmUrl? :string) : Promise<PublishResult>{
 
     let publishResult : PublishResult = {isSucc:true};
-
     let [bytecode,deps] = readCoinTemplateBytes();
+    if(wasmUrl){
+        template.init_url(wasmUrl);
+    } else{
+        template.init_local();
+    }
     
     let jsonRet = template.deserialize(bytecode);
     let bytes = template.serialize(jsonRet);
@@ -104,7 +106,7 @@ export async function publishCoin(params : PublishCoinParams,  signer : Keypair)
         } 
     }
 
-
+    
     let updated = template.update_identifiers(bytecode, {
         "TEMPLATE": params.module_name.toUpperCase(),
         "template": params.module_name
