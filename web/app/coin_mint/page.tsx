@@ -29,7 +29,7 @@ import { SuiSignAndExecuteTransactionOutput } from '@mysten/wallet-standard';
 
 const wasmUrl = '/move_bytecode_template_bg.wasm';
 export default function CoinCreate(): React.ReactNode {
-  
+
   const wallet = useCurrentWallet();
   const account = useCurrentAccount();
   const suiClient = useSuiClient();
@@ -100,9 +100,16 @@ export default function CoinCreate(): React.ReactNode {
       )
 
   }  
+  const [supportsGzip, setSupportsGzip] = useState(false);
 
   useEffect(()=>{
-       init_template(wasmUrl).then((result : Result) =>{
+       if (typeof window !== 'undefined') {
+            // 直接判断浏览器是否支持 Gzip
+            const userAgent = navigator.userAgent;
+            const isOldBrowser = /MSIE |Trident\/|Edge\//.test(userAgent);
+            setSupportsGzip(!isOldBrowser);
+        }
+       init_template(wasmUrl,supportsGzip).then((result : Result) =>{
         if(result.isSucc){
           setInited(true);
         } else{

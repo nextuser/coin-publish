@@ -3,30 +3,30 @@ getPrecreateTx target: 0x3b04b90cc0821f65dd697427e0775f4ad9be283e43a9e7144a42550
 -------------isCreatable-----------------
 isCreatable: 0xebb49dad8eae5f8cf9e55fbb02c1addd54415ac1d4422f8b47cb898bfbdc49f8 0xf7ec2215e565b7a18d7b00e70fccda74b30c3ecceffb5857b1b3d2249e28e94f
 suiclient  SuiClient { transport: SuiHTTPTransport {} }
-wasm path
+wasm path /home/ljl/work/sui/dapp/coin-publish/web/pkg/move_bytecode_template_bg.wasm
 -------------execute result--------------
 -------object changes--------------
-package id: 0x17240e8d284c4d511d65efb5538ff59dbe375062b73442fb2820b0a7ab35f9dc
-publish created object_type 0x3b04b90cc0821f65dd697427e0775f4ad9be283e43a9e7144a42550a0cf3b7a8::coin_manager::CurveVault<0x17240e8d284c4d511d65efb5538ff59dbe375062b73442fb2820b0a7ab35f9dc::ydt::YDT>
+package id: 0x11831ed827f77344d2a9655404066f2605e9289a7ec55e1b12799ba1b7b21b49
+publish created object_type 0x3b04b90cc0821f65dd697427e0775f4ad9be283e43a9e7144a42550a0cf3b7a8::coin_manager::CurveVault<0x11831ed827f77344d2a9655404066f2605e9289a7ec55e1b12799ba1b7b21b49::ydt::YDT>
 publish created object_type 0x2::package::UpgradeCap
-cost -0.01418296
+cost -0.0112486
 publish result: {
   isSucc: true,
-  publish_digest: '84aJW349FeFu1bPZXSPieDyd9V7483Bw345FKdK4CnFG',
+  publish_digest: 'HEzPfichEqN8S9RNyemGuadf23D5dQ1seG4AvEaXApeA',
   coin_type: '袁大头',
-  sui_cost: '14182960',
-  coin_package_id: '0x17240e8d284c4d511d65efb5538ff59dbe375062b73442fb2820b0a7ab35f9dc',
-  vault_id: '0x2443194d3b87a6379c6563a2b7a27171c82001c6420d138efc002807b74e2e21',
-  upgrade_cap: '0x404334deae0ca85d40596eb48f1703a995485504f5f280eceeb666c94c80db3c',
+  sui_cost: '11248600',
+  coin_package_id: '0x11831ed827f77344d2a9655404066f2605e9289a7ec55e1b12799ba1b7b21b49',
+  vault_id: '0xb9f0795c9a003ca0f296595b0a2db5a570beb5050e43b3d2dff398ad61c9d862',
+  upgrade_cap: '0xc4fad5eef7a58a9eebb226c8260ff8b9fe7f73f4e114a1fb7b89eee22e485347',
   created_event: {
     meta_name: '袁大头',
     minter: '0xf7ec2215e565b7a18d7b00e70fccda74b30c3ecceffb5857b1b3d2249e28e94f',
-    treasury_address: '7add9730cdb41bbadf0635219d932404fc2e4ecf3ca35c177cf28f8b1ea35e3d',
-    type_name: '17240e8d284c4d511d65efb5538ff59dbe375062b73442fb2820b0a7ab35f9dc::ydt::YDT',
-    vault_address: '0x2443194d3b87a6379c6563a2b7a27171c82001c6420d138efc002807b74e2e21'
+    treasury_address: 'cfc20d5231d230762af59dd459345a0fbc6b55d634ec1fc7e5058dcc0054972b',
+    type_name: '11831ed827f77344d2a9655404066f2605e9289a7ec55e1b12799ba1b7b21b49::ydt::YDT',
+    vault_address: '0xb9f0795c9a003ca0f296595b0a2db5a570beb5050e43b3d2dff398ad61c9d862'
   }
 }
-after_create argurments 0x3b04b90cc0821f65dd697427e0775f4ad9be283e43a9e7144a42550a0cf3b7a8::coin_manager::after_create 0xebb49dad8eae5f8cf9e55fbb02c1addd54415ac1d4422f8b47cb898bfbdc49f8 0x2443194d3b87a6379c6563a2b7a27171c82001c6420d138efc002807b74e2e21 0x590346bf5cc24953968e158eb6c6b3f72f42e87ca001661bc54722cdafaf9e65  type-arguments: 17240e8d284c4d511d65efb5538ff59dbe375062b73442fb2820b0a7ab35f9dc::ydt::YDT
+after_create argurments 0x3b04b90cc0821f65dd697427e0775f4ad9be283e43a9e7144a42550a0cf3b7a8::coin_manager::after_create 0xebb49dad8eae5f8cf9e55fbb02c1addd54415ac1d4422f8b47cb898bfbdc49f8 0xb9f0795c9a003ca0f296595b0a2db5a570beb5050e43b3d2dff398ad61c9d862 0x590346bf5cc24953968e158eb6c6b3f72f42e87ca001661bc54722cdafaf9e65  type-arguments: 11831ed827f77344d2a9655404066f2605e9289a7ec55e1b12799ba1b7b21b49::ydt::YDT
 succ status= success
--17500164n
-233444n
+-17018628n
+3167804n

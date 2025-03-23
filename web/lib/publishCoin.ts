@@ -21,7 +21,18 @@ type DumpFormat ={
     digest : Uint8Array[]
 }
 
-
+const init_local = function(){
+    if(template.isInited()) return;
+    
+    //todo nextjs 通过web server访问的时候, 往往加载move_bytecode_template_bg.wasm 错误
+    const workdir = process.env.npm_config_local_prefix || process.cwd();
+    //console.log("cwd", workdir);
+    
+    const path = require('path').join(workdir,'pkg', 'move_bytecode_template_bg.wasm');
+    console.log('wasm path',path);
+    const bytes = require('fs').readFileSync(path);
+    template.init(bytes);
+}
 
 
 //public fun after_create<T>(user : address,vault : &mut CurveVault<T>,manager:&mut Manager , ctx : &mut TxContext)
@@ -76,17 +87,13 @@ export async function isCreatable(suiClient : SuiClient , minter : string, opera
     return false;
 }
 
-export async function publishCoin(params : PublishCoinParams,  signer : Keypair, wasmUrl? :string) : Promise<PublishResult>{
+export async function publishCoin(params : PublishCoinParams,  signer : Keypair) : Promise<PublishResult>{
 
     let publishResult : PublishResult = {isSucc:true};
     const ct = readCoinTemplateBytes();
     const bytecode = ct.bytecode;
     const deps = ct.dependencies;
-    if(wasmUrl){
-        template.init_url(wasmUrl);
-    } else{
-        template.init_local();
-    }
+    init_local();
     
     let jsonRet = template.deserialize(bytecode);
     let bytes = template.serialize(jsonRet);

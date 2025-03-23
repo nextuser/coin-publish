@@ -4,7 +4,7 @@ import { PublishCoinParams , PublishResult } from './types';
 import { bcs } from '@mysten/bcs';
 import { SuiClient } from '@mysten/sui/client';
 import coin_types from '@/lib/coin_bytecode.json'
-import * as template from '../pkg_client';
+import * as template from '../pkg';
 import { readCoinTemplateBytes } from '@/lib/sui/sui_utils';
 import { SuiTransactionBlockResponse } from '@mysten/sui/client';
 import { getCost } from './sui/sui_utils';
@@ -24,9 +24,33 @@ export function getPrecreateTx(operator :string) : Transaction{
     return tx;
 }
 
-export async function init_template(wasmUrl : string) {
+const init_url = async function(wasmUrl : string,useGzip : boolean){
+    if(template.isInited()) return;
+    
+    try {
+        const fetchUrl = useGzip ? wasmUrl.replace('wasm','gz') : wasmUrl;
+        // 下载 WASM 文件
+        const response = await fetch(fetchUrl);
+        const buffer = await response.arrayBuffer();
+
+        // 如果是 Gzip 文件，需要解压
+        let wasmBuffer = buffer;
+        if (useGzip) {
+            const ds = new DecompressionStream('gzip');
+            const stream = new Response(buffer).body!.pipeThrough(ds);
+            wasmBuffer = await new Response(stream).arrayBuffer();
+        }
+        template.init(wasmBuffer);
+    } catch (error) {
+        console.error('Error loading or running WASM:', error);
+    }
+    
+}
+
+
+export async function init_template(wasmUrl : string,supportGzip : boolean) {
     try{                                
-        await template.init_url(wasmUrl);
+        await init_url(wasmUrl,supportGzip);
     }
     catch(error){
         return     {errMsg  : `fail to init_url for wasm:{wasmUrl}`,

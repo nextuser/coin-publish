@@ -1,5 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
+
+import { BufferSource } from "stream/web";
+
 /**
  * Get the version of the crate (useful for testing the package).
  */
@@ -68,9 +71,9 @@ export function get_constants(binary: Uint8Array): any;
  */
 export function serialize(json_module: any): Uint8Array;
 
-export function init_local();
+export function isInited();
 
-export async function init_url(url:string);
+export function init(buffer:BufferSource);
 /**
  * A transformed constant from the constant pool.
  */
