@@ -47,6 +47,7 @@ export default function ImageFileInput(props:{fileUrl:string, setFileUrl: (url :
         });
   
         if (!response.ok) {
+          console.log("upload failed " ,response.ok,response.text());
           throw new Error('upload failed');
         }
   
@@ -54,6 +55,7 @@ export default function ImageFileInput(props:{fileUrl:string, setFileUrl: (url :
         console.log('upload success, result =', result);
         return result.url;
       } catch (err) {
+        console.log("catch error : ",err);
         setError(err instanceof Error ? err.message : 'upload failed');
       } finally {
         setUploading(false);
