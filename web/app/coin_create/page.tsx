@@ -28,15 +28,15 @@ export default function CoinCreate(): React.ReactNode {
   const wallet = useCurrentWallet();
   const account = useCurrentAccount();
 
-
-  const [form, setForm] = useState<MintForm>({
+  const empty_form = {
     name: '',
     symbol: '',
     decimals : '4',
     description: '',
     image: '',
     minter : account ? account.address : ''
-  });
+  }
+  const [form, setForm] = useState<MintForm>(empty_form);
   const [pr,setPr] = useState<PublishResult|null> (null)
   const pkg = suiConfig.coin_manager_pkg;
   const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction(); 
@@ -150,7 +150,8 @@ export default function CoinCreate(): React.ReactNode {
             onChange={(e) => setForm({...form, description: e.target.value})} 
             />
 
-        <Button variant="action" onClick={(e)=>{ handleCreate()}}  disabled={!wallet.isConnected}>Create Coin</Button>
+          <Button variant="action" onClick={(e)=>{ setForm(empty_form)}} >Reset</Button>
+          <Button variant="action" onClick={(e)=>{ handleCreate()}}  disabled={!wallet.isConnected}>Create Coin</Button>
       </div>
       { pr && pr.isSucc && <div>
         {pr.publish_digest && (
@@ -161,7 +162,7 @@ export default function CoinCreate(): React.ReactNode {
         }
         <div className="grid grid-cols-2 gap-4">
         <p>Coin Type</p><p>{pr.coin_type}</p>
-        <p>Vault</p><p>{pr.vault_id}</p>
+        <p>Coin Details:</p><p>{pr.vault_id}</p>
         </div>
 
         <Link href={`/coins_by/${account?.address}`}>My Coins</Link>

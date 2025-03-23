@@ -9,8 +9,8 @@ export function cn(...inputs : any[]) {
 }
 
 
-export function short_addr(addr:string) : string{
-  if(addr.length < 16){
+export function short_addr(addr:string |undefined ) : string{
+  if(!addr || addr.length < 16){
     return 'invalid addr';
   }
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`

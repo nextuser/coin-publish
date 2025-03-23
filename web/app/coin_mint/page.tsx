@@ -25,7 +25,7 @@ import { publishCoin } from '@/lib/publishCoin';
 import { getPublishTx , parsePublishResult } from '@/lib/publish_client';
 import { init_template} from  '@/lib/publish_client';
 import { SuiSignAndExecuteTransactionOutput } from '@mysten/wallet-standard';
-
+import { short_addr } from '@/lib/utils';
 
 const wasmUrl = '/move_bytecode_template_bg.wasm';
 export default function CoinCreate(): React.ReactNode {
@@ -34,20 +34,28 @@ export default function CoinCreate(): React.ReactNode {
   const account = useCurrentAccount();
   const suiClient = useSuiClient();
   const [inited,setInited] = useState(false);
-  const [form, setForm] = useState<MintForm>({
+  const empty_form = {
     name: '',
     symbol: '',
     decimals : '4',
     description: '',
     image: '',
     minter : account ? account.address : ''
-  });
+  };
+  const [form, setForm] = useState<MintForm>(empty_form);
+
   const [pr,setPr] = useState<PublishResult|null> (null)
   const pkg = suiConfig.coin_manager_pkg;
   const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction(); 
 
 
-
+  function onChangeSymbol(value : string){
+    // 将输入内容转换为大写
+    value = value.toUpperCase();
+    // 使用正则表达式替换所有非大写字母和下划线的字符
+    value = value.replace(/[^A-Z_]/g, '');
+    setForm({...form, symbol: value});
+  }
 
   function  getJsonParams(form:MintForm) {
     const symbol = form.symbol;
@@ -66,7 +74,7 @@ export default function CoinCreate(): React.ReactNode {
     return param
  }
 
-   
+
   async function handleCreate( )  {
       form.minter = suiConfig.operator;
       const param = getJsonParams(form);
@@ -137,13 +145,12 @@ export default function CoinCreate(): React.ReactNode {
             <label htmlFor="Symbol" className="block text-sm font-medium text-gray-700">
                 Symbol
             </label>
-            <input 
-            name='Symbol'
-            placeholder="Symbol" 
-            value={form.symbol} 
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            onChange={(e) => setForm({...form, symbol: e.target.value})} 
-            />
+          <input type="text" id="Symbol"
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+          value={form.symbol}  
+          onChange={(e) =>onChangeSymbol(e.target.value || '')} placeholder="Only uppercase letters and underscores can be entered" />
+
+
             <label htmlFor="Decimals" className="block text-sm font-medium text-gray-700">
                 Decimals
             </label>
@@ -164,26 +171,25 @@ export default function CoinCreate(): React.ReactNode {
             placeholder="Description" 
             value={form.description} 
             onChange={(e) => setForm({...form, description: e.target.value})} 
-            />
-
-        <Button variant="action" 
-        className='col-span-2'
+            />  
+        <Button variant="action" className="max-w-250" onClick={(e)=>{ setForm(empty_form)}} >Reset</Button>
+        <Button variant="action" className="max-w-250" 
         onClick={(e)=>{ handleCreate()}}  
         disabled={!wallet.isConnected && inited}>Create Coin</Button>
       </div>
-      { pr && pr.isSucc && <div>
+      <hr/>
+      { pr && pr.isSucc && <div className="">
         {pr.publish_digest && (
-        <div className="grid grid-cols-1 gap-4  w-800">
-          <div><CopyButton display={pr.publish_digest!} copy_value={pr.publish_digest!} size={20} fontSize={12}></CopyButton></div>
+        <div className="grid grid-cols-2 gap-4  w-600">
+          <div>Transaction:</div>
           <div><ViewTransaction size={20} fontSize={12} txId={pr.publish_digest!}></ViewTransaction></div>
         </div>)
         }
         <div className="grid grid-cols-2 gap-4">
-        <p>Coin Type</p><p>{pr.coin_type}</p>
-        <p>Vault</p><p>{pr.vault_id}</p>
+        <p className='text-base'>Coin Type :</p>
+        <div className='text-sm text-blue-300 hover:text-blue-700 flex justify-start'>
+        <Link href={`/coin_detail/${pr.vault_id}` } target='_blank'><p> {pr.coin_type}</p></Link></div>
         </div>
-
-        <Link href={`/coins_by/${account?.address}`}>My Coins</Link>
         </div>
       }
       { pr && !pr.isSucc && <p>{pr.errMsg}</p>}

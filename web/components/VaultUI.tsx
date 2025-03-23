@@ -19,7 +19,7 @@ export default function VaultUI(props :{key:string,vault :CurveVault}) {
     <div>
     <h3>{meta.name}</h3>
     <p>Symbol: {meta.symbol}</p>
-    <p>{meta.decimals}</p>
+    <p>Decimals {meta.decimals}</p>
     <p>Creator: {`${short_addr(vault.coin_creator)}`}</p>
     <p>Description: {meta.description}</p>
     <p>Supply:{s0}</p>

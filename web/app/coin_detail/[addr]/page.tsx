@@ -194,16 +194,15 @@ export default function CoinDetail(): React.ReactNode  {
   if(vault == null){
     return <p>can not find vault for {vault_addr}</p>
   }
-  return (<div>
-           <Tabs defaultValue="buy" className="w-[400px]">
+  return (<div className='flex  justify-center wx-600px'>
+           <Tabs defaultValue="buy" >
           <TabsList>
             <TabsTrigger value="buy">Buy</TabsTrigger>
             <TabsTrigger value="sell">Sell</TabsTrigger>
           </TabsList>
-            <TabsContent value="buy">
-            <div className="trade-panel wx-300">
+            <TabsContent value="buy" className='items-start'>
+            <div >
               <label >Max: {user_sui_balance} SUI</label>
-              <div>
               <NumberInput 
                 name="buyPaySui"
                 value={buyAmount}
@@ -213,32 +212,30 @@ export default function CoinDetail(): React.ReactNode  {
                 prefix='SUI : '
                 onValueChange={(v: number | undefined) => changeBuyAmount(v ? v : 0)} 
               />
-              </div>
-              <div>
               <Input 
                 type="range" 
                 name="buyRange"
                 value={buyRange}
                 className="px-0 "
+                disabled={user_sui_balance == 0}
                 min={0}
                 max={100} 
                 onChange={(e) => changeBuyPercent(Number(e.target.value))} 
               />
-              </div>
               <div className="quick-buttons mx-2">
-                <Button variant='percent' onClick={() => changeBuyPercent(0 )}>Reset</Button>
-                <Button variant='percent' onClick={() => changeBuyPercent(25)}>25%</Button>
-                <Button variant='percent' onClick={() => changeBuyPercent(50 )}>50%</Button>
-                <Button variant='percent' onClick={() => changeBuyPercent(75 )}>75%</Button>
-                <Button variant='percent' onClick={() => changeBuyPercent(  100)}>100%</Button>
+                <Button variant='percent' disabled={!account || buyAmount<=0} onClick={() => changeBuyPercent(0 )}>0%</Button>
+                <Button variant='percent' disabled={!account || buyAmount<=0} onClick={() => changeBuyPercent(25)}>25%</Button>
+                <Button variant='percent' disabled={!account || buyAmount<=0} onClick={() => changeBuyPercent(50 )}>50%</Button>
+                <Button variant='percent' disabled={!account || buyAmount<=0} onClick={() => changeBuyPercent(75 )}>75%</Button>
+                <Button variant='percent' disabled={!account || buyAmount<=0} onClick={() => changeBuyPercent(  100)}>100%</Button>
               </div>
               <div><label>Token : {buyToken} </label></div>
-              <Button variant='action' disabled={buyAmount<=0} onClick={ (e)=>{Buy()} } > Buy </Button>
+              <Button variant='action' disabled={!account || buyAmount<=0} onClick={ (e)=>{Buy()} } > Buy </Button>
             </div>
 
             </TabsContent>
             <TabsContent value="sell">
-            <div className="trade-panel wx-300">
+            <div >
               <label>Max: {user_token_balance} {vault.meta.fields.symbol}</label>
               <div>
               <NumberInput 
@@ -258,21 +255,21 @@ export default function CoinDetail(): React.ReactNode  {
                 type="range" 
                 min={0}
                 max={100}
-
+                disabled={user_token_balance == 0}
                 className="px-0 "
                 value={sellRange} 
                 onChange={(e) => changeSellPercent(Number(e.target.value))} 
               />
               </div>
               <div className="quick-buttons mx-2">
-                <Button variant='percent'   onClick={() => changeSellPercent(0 )}>Reset</Button>
-                <Button variant='percent'   onClick={() => changeSellPercent(25)}>25%</Button>
-                <Button variant='percent'   onClick={() => changeSellPercent(50)}>50% </Button>
-                <Button variant='percent'   onClick={() => changeSellPercent(75 )}>75%</Button>
-                <Button variant='percent'   onClick={() => changeSellPercent(100 )}>100%</Button>
+                <Button variant='percent' disabled={!account || sellToken<=0}  onClick={() => changeSellPercent(0 )}>Reset</Button>
+                <Button variant='percent' disabled={!account || sellToken<=0}  onClick={() => changeSellPercent(25)}>25%</Button>
+                <Button variant='percent' disabled={!account || sellToken<=0} onClick={() => changeSellPercent(50)}>50% </Button>
+                <Button variant='percent' disabled={!account || sellToken<=0}  onClick={() => changeSellPercent(75 )}>75%</Button>
+                <Button variant='percent' disabled={!account || sellToken<=0}  onClick={() => changeSellPercent(100 )}>100%</Button>
               </div>
               <div><label>estimate gain : {gain} SUI</label></div>
-              <Button variant='action' disabled={sellToken<=0} onClick={ (e)=>{Sell()} }> Sell </Button>
+              <Button variant='action' disabled={!account || sellToken<=0} onClick={ (e)=>{Sell()} }> Sell </Button>
               <hr/>
               
               
@@ -280,7 +277,7 @@ export default function CoinDetail(): React.ReactNode  {
             </TabsContent>
 
           </Tabs>
-          <div>
+          <div className=''>
           {transferEvent && 
             <div>
               <p>Token:{vault.meta.fields.symbol} :<br/></p>
