@@ -1,7 +1,7 @@
 import { short_addr } from "@/lib/utils";
 import { faTextWidth } from "@fortawesome/free-solid-svg-icons";
 import { Link } from "lucide-react";
-const  ViewTransaction =( props:{ txId:string, size?:number ,fontSize:number})=>{
+const  CopyViewTransaction =( props:{ txId:string, size?:number ,fontSize:number})=>{
     const viewTransaction = (id: string) => {
         window.open(`https://testnet.suivision.xyz/txblock/${id}`, '_blank');
     };
@@ -18,4 +18,4 @@ const  ViewTransaction =( props:{ txId:string, size?:number ,fontSize:number})=>
 }
 
 
-export default ViewTransaction;
+export default CopyViewTransaction;

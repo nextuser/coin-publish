@@ -11,7 +11,7 @@ export default function ConnectBar(){
                 <Link href="/coin_mint">Create_Coin</Link>
                 <span className='mx-4'/>
             {acc && 
-                <Link href={`/coins_by/${acc.address}`}>My Coins</Link> 
+                <Link href={`/coins_by/${acc.address}`}>My Works</Link> 
             }
         </div>
     

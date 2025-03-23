@@ -13,7 +13,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { NumberInput } from '@/components/NumberInput';
-
+import { useSearchParams } from 'next/navigation';
+import CopyViewTransaction from '@/components/CopyViewTransaction';
 
 async function getVault(suiClient : SuiClient,addr : string){
   let object =  await suiClient.getObject({id : addr,  options:{ showContent : true}});
@@ -57,6 +58,7 @@ async function getUserInfo(suiClient : SuiClient, account:string ,vault : CurveV
 
 export default function CoinDetail(): React.ReactNode  {
   const params = useParams();
+  const digest = useSearchParams().get('digest')
   const vault_addr  = params.addr;
   const suiClient = useSuiClient();
   const [timeFrame, setTimeFrame] = useState('1h');
@@ -194,8 +196,9 @@ export default function CoinDetail(): React.ReactNode  {
   if(vault == null){
     return <p>can not find vault for {vault_addr}</p>
   }
-  return (<div className='flex  justify-center wx-600px'>
-           <Tabs defaultValue="buy" >
+  return (<div className='flex  justify-center max-w-600'>
+          <div>
+           <Tabs defaultValue="buy" className='max-w-600'>
           <TabsList>
             <TabsTrigger value="buy">Buy</TabsTrigger>
             <TabsTrigger value="sell">Sell</TabsTrigger>
@@ -287,7 +290,16 @@ export default function CoinDetail(): React.ReactNode  {
               <p>SUI:</p>
               <p> {Number(transferEvent.sui_amount)/Number(vault.sui_decimals_value)} </p>
             </div>
+
         }
+
+
+        </div>
+        <div>
+        { digest &&
+          <div><CopyViewTransaction size={20} fontSize={12} txId={digest} /></div>
+        }
+        </div>
         </div>
         </div>
   );

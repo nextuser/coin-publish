@@ -7,7 +7,7 @@ import { ConnectButton } from '@mysten/dapp-kit';
 import { SUI_DECIMALS } from '@mysten/sui/utils';
 import { number } from 'echarts';
 import CopyButton from '@/components/CopyButton';
-import ViewTransaction from '@/components/ViewTransaction';
+import CopyViewTransaction from '@/components/CopyViewTransaction';
 import IntegerInput from '@/components/IntegerInput';
 import ImageFileInput from '@/components/ImageFileInput'
 import { MintForm } from '@/lib/types';
@@ -26,6 +26,7 @@ import { getPublishTx , parsePublishResult } from '@/lib/publish_client';
 import { init_template} from  '@/lib/publish_client';
 import { SuiSignAndExecuteTransactionOutput } from '@mysten/wallet-standard';
 import { short_addr } from '@/lib/utils';
+
 
 const wasmUrl = '/move_bytecode_template_bg.wasm';
 export default function CoinCreate(): React.ReactNode {
@@ -97,8 +98,14 @@ export default function CoinCreate(): React.ReactNode {
               (result)=>{
                 const pr = parsePublishResult(result);
                 setPr(pr);
+                if(pr.vault_id){
+                  redirect(`coin_detail/${pr.vault_id}?digest=${r.digest}`)
+                }
+
               }
             )
+
+            
           
           },
           onError:(err)=>{
@@ -119,6 +126,7 @@ export default function CoinCreate(): React.ReactNode {
         }
        init_template(wasmUrl,supportsGzip).then((result : Result) =>{
         if(result.isSucc){
+          
           setInited(true);
         } else{
           console.log("init template fail:", result.errMsg);
@@ -182,7 +190,7 @@ export default function CoinCreate(): React.ReactNode {
         {pr.publish_digest && (
         <div className="grid grid-cols-2 gap-4  w-600">
           <div>Transaction:</div>
-          <div><ViewTransaction size={20} fontSize={12} txId={pr.publish_digest!}></ViewTransaction></div>
+          <div><CopyViewTransaction size={20} fontSize={12} txId={pr.publish_digest!} /></div>
         </div>)
         }
         <div className="grid grid-cols-2 gap-4">
