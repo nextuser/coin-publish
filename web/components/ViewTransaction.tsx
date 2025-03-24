@@ -1,38 +1,21 @@
 import { short_addr } from "@/lib/utils";
 import { faTextWidth } from "@fortawesome/free-solid-svg-icons";
-import { Link ,Copy, FileX} from "lucide-react";
-const  ViewTransaction =( props:{ txId:string, size?:number ,fontSize:number})=>{
+import { Link } from "lucide-react";
+const  CopyViewTransaction =( props:{ txId:string, size?:number ,fontSize:number})=>{
     const viewTransaction = (id: string) => {
         window.open(`https://testnet.suivision.xyz/txblock/${id}`, '_blank');
     };
 
-    const copyContent = async (text:string) => {
-        try {
-        await navigator.clipboard.writeText(text);
-        console.log('Content copied to clipboard');
-        } catch (err) {
-        console.error('Failed to copy: ', err);
-        }
-    }
-
+    
     const txId = props.txId;
-    const display = props.txId;
+    const display = short_addr(txId)
     return (
-        <div style={ {display:"flex", }}>
-        <button onClick={()=>copyContent(props.txId)} className="text-blue-200 hover:text-blue-500 ">
-        <Copy size={props.size} className="hover:cursor-pointer" />
+        <button onClick={(e)=> viewTransaction(txId)} className="text-gray-500 hover:text-gray-700 cursor-pointer flex">
+        <Link size={props.size} className="hover:cursor-pointer mx-2"/>
+        <p style={{fontSize:props.fontSize}}>{display}</p>
         </button>
-        
-        <button onClick={(e)=> viewTransaction(txId)} className="text-blue-200 hover:text-blue-500 cursor-pointer flex justify-start">
-        <Link size={props.size} className="hover:cursor-pointer"/>
-        
-        <span style={{fontSize:props.fontSize}}>{display}</span>
-        </button>
-        
-        
-        </div>
         )
 }
 
 
-export default ViewTransaction;
+export default CopyViewTransaction;

@@ -30,6 +30,8 @@ function buildQueryString(params: Record<string, string | number | boolean>): st
     return queryParams.join('&');
 }
 
+
+//'https://api.blockvision.org/v2/sui/coin/holders?coinType=0x0000000000000000000000000000000000000000000000000000000000000002%3A%3Asui%3A%3ASUI&pageIndex=1&pageSize=20';
 function buildGetUrl(baseUrl: string, params: Record<string, string | number | boolean>): string {
     const queryString = buildQueryString(params);
     return queryString ? `${baseUrl}?${queryString}` : baseUrl;
@@ -41,9 +43,9 @@ export async function fetch_coin_owners(coin_type : string) : Promise<Response |
         console.log("export BV_API_KEY=... and COIN_TYPE first");
         process.exit(-1);
     }
-
+    console.log('coinType=',coin_type);
     // 使用示例
-    const baseUrl = BV_URL;''
+    const baseUrl = BV_URL;
     const params = {
         coinType: coin_type,
         pageIndex: 1,
@@ -51,7 +53,7 @@ export async function fetch_coin_owners(coin_type : string) : Promise<Response |
     }
 
     const url = buildGetUrl(baseUrl,params);
-    //'?coinType=0x0000000000000000000000000000000000000000000000000000000000000002%3A%3Asui%3A%3ASUI&pageIndex=1&pageSize=20';
+
     const options = {
         method: 'GET',
         headers: {
@@ -67,14 +69,16 @@ export async function fetch_coin_owners(coin_type : string) : Promise<Response |
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        ///console.log("response:",response);
+        console.log("response:",response);
         
         const text = await response.text();
         let data  = JSON.parse(text);
         let rsp = data as Response;
         console.log("account, balance, percentage");
-        if(rsp.code == "200"  && rsp.result.data.length > 0 ){
+        if(rsp.code == '200'   ){
             return rsp;
+        } else{
+            console.error("error rsp:",rsp);
         }
     } catch (error) {
         console.error('Error fetching data:', error);

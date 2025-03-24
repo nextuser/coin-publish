@@ -14,7 +14,8 @@ import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { NumberInput } from '@/components/NumberInput';
 import { useSearchParams } from 'next/navigation';
-import CopyViewTransaction from '@/components/CopyViewTransaction';
+import CopyViewTransaction from '@/components/ViewTransaction';
+import { OwnerTable } from '@/components/OwnerTable';
 
 async function getVault(suiClient : SuiClient,addr : string){
   let object =  await suiClient.getObject({id : addr,  options:{ showContent : true}});
@@ -75,6 +76,7 @@ export default function CoinDetail(): React.ReactNode  {
   const [user_token_balance,setUserTokenBalance] = useState(0)
   const [buyRange,setBuyRange] = useState(0)
   const [sellRange,setSellRange] = useState(0)
+  const [coinType,setCoinType] = useState<string|null>(null)
 
   async function init_call(suiClient : SuiClient,vault_addr : string, user_addr :string|null|undefined){
     const vault = await getVault(suiClient,vault_addr)
@@ -85,6 +87,7 @@ export default function CoinDetail(): React.ReactNode  {
     else{
       const s0 = getNormalizeSupply(vault);
       setTokeSupply(s0);
+      setCoinType(getTypeByMeta(vault.meta.type))
       console.log("init_call supply:", s0);
     }
     if(user_addr){
@@ -111,7 +114,6 @@ export default function CoinDetail(): React.ReactNode  {
               const te = getTransferEvent(result.events);
               console.log("buy tx:transferevnet:",te);
               setTransferEvent(te);
-
               init_call(suiClient,vault.id.id, account?.address);
           }
         );
@@ -206,15 +208,14 @@ export default function CoinDetail(): React.ReactNode  {
             <TabsContent value="buy" className='items-start'>
             <div >
               <label >Max: {user_sui_balance} SUI</label>
-              <NumberInput 
+              <div className='flex justify-start'><NumberInput 
                 name="buyPaySui"
                 value={buyAmount}
                 decimalScale = {9}
                 min={0}
                 max={user_sui_balance} 
-                prefix='SUI : '
                 onValueChange={(v: number | undefined) => changeBuyAmount(v ? v : 0)} 
-              />
+              /> SUI</div>
               <Input 
                 type="range" 
                 name="buyRange"
@@ -232,7 +233,7 @@ export default function CoinDetail(): React.ReactNode  {
                 <Button variant='percent' disabled={!account || buyAmount<=0} onClick={() => changeBuyPercent(75 )}>75%</Button>
                 <Button variant='percent' disabled={!account || buyAmount<=0} onClick={() => changeBuyPercent(  100)}>100%</Button>
               </div>
-              <div><label>Token : {buyToken} </label></div>
+              <div><label className='text-xs'>Token : {buyToken} </label></div>
               <Button variant='action' disabled={!account || buyAmount<=0} onClick={ (e)=>{Buy()} } > Buy </Button>
             </div>
 
@@ -240,16 +241,15 @@ export default function CoinDetail(): React.ReactNode  {
             <TabsContent value="sell">
             <div >
               <label>Max: {user_token_balance} {vault.meta.fields.symbol}</label>
-              <div>
+              <div className='flex justify-start'>
               <NumberInput 
                 name="sellTokenNum"
                 min = {0}
                 decimalScale = {Number(vault.meta.fields.decimals)}
                 max = {user_token_balance}
                 value={sellToken} 
-                prefix={`${vault.meta.fields.symbol} :`}
                 onValueChange={(v? :number) => changeSellToken(Number(v? v:0))} 
-              />
+              /> {`${vault.meta.fields.symbol}`}
               </div>
               <div>
 
@@ -265,13 +265,13 @@ export default function CoinDetail(): React.ReactNode  {
               />
               </div>
               <div className="quick-buttons mx-2">
-                <Button variant='percent' disabled={!account || sellToken<=0}  onClick={() => changeSellPercent(0 )}>Reset</Button>
+                <Button variant='percent' disabled={!account || sellToken<=0}  onClick={() => changeSellPercent(0 )}>0%</Button>
                 <Button variant='percent' disabled={!account || sellToken<=0}  onClick={() => changeSellPercent(25)}>25%</Button>
                 <Button variant='percent' disabled={!account || sellToken<=0} onClick={() => changeSellPercent(50)}>50% </Button>
                 <Button variant='percent' disabled={!account || sellToken<=0}  onClick={() => changeSellPercent(75 )}>75%</Button>
                 <Button variant='percent' disabled={!account || sellToken<=0}  onClick={() => changeSellPercent(100 )}>100%</Button>
               </div>
-              <div><label>estimate gain : {gain} SUI</label></div>
+              <div><label className='text-xs'>estimate gain : {gain} SUI</label></div>
               <Button variant='action' disabled={!account || sellToken<=0} onClick={ (e)=>{Sell()} }> Sell </Button>
               <hr/>
               
@@ -299,6 +299,11 @@ export default function CoinDetail(): React.ReactNode  {
         { digest &&
           <div><CopyViewTransaction size={20} fontSize={12} txId={digest} /></div>
         }
+        {/* only mainnet work properly 
+        {
+          coinType &&
+          <OwnerTable coin_type={coinType}></OwnerTable>
+        } */}
         </div>
         </div>
         </div>

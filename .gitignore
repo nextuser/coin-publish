@@ -1,6 +1,8 @@
 node_modules
 *.bak
 **/Move.lock
+**/pnpm-lock.yaml
+**/yarn.lock
 bak
 .env
 .history

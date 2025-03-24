@@ -2,6 +2,7 @@ import { stringify } from 'querystring';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Copy, Trash2 } from "lucide-react";
+import { Button } from './ui/button';
 
 export default function ImageFileInput(props:{fileUrl:string, setFileUrl: (url :string)=>void}) {
   const [inputType, setInputType] = useState('file');
@@ -91,11 +92,13 @@ export default function ImageFileInput(props:{fileUrl:string, setFileUrl: (url :
     { error && <p>{error}</p>}
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
     <DialogTrigger onClick={() => setIsOpen(true)}>
-    <p>Upload</p>
+    <div><p className="bg-primary/80 text-primary-foreground hover:bg-primary/60 border border-input px-4 py-2 rounded-2xl w-full">
+    Upload Image
+    </p></div>
     </DialogTrigger>
-      <DialogContent className="absolute m-auto max-w-md top-1/2 -translate-y-1/2">
+      <DialogContent >
         <DialogHeader>
-          <DialogTitle>Upload Image</DialogTitle>
+          <DialogTitle >Upload Image</DialogTitle>
           <DialogDescription>
           Select the local image to upload, or enter the image URL
           </DialogDescription>
@@ -147,12 +150,11 @@ export default function ImageFileInput(props:{fileUrl:string, setFileUrl: (url :
         </div>
       )}
 
-      <button
+      <Button
         onClick={handleSubmit}
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
       >
          {uploading ? 'Uploading...' : 'Upload'}
-      </button>
+      </Button>
         <DialogClose />
       </DialogContent>
     </Dialog>

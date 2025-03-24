@@ -8,7 +8,7 @@ import { SUI_DECIMALS } from '@mysten/sui/utils';
 import { number } from 'echarts';
 import { publishCoin } from '@/lib/publishCoin';
 import CopyButton from '@/components/CopyButton';
-import ViewTransaction from '@/components/ViewTransaction';
+import ViewTransaction from '@/components/CopyViewTransaction';
 import IntegerInput from '@/components/IntegerInput';
 import ImageFileInput from '@/components/ImageFileInput'
 import { MintForm } from '@/lib/types';

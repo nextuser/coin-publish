@@ -7,7 +7,7 @@ import { ConnectButton } from '@mysten/dapp-kit';
 import { SUI_DECIMALS } from '@mysten/sui/utils';
 import { number } from 'echarts';
 import CopyButton from '@/components/CopyButton';
-import CopyViewTransaction from '@/components/CopyViewTransaction';
+import CopyViewTransaction from '@/components/ViewTransaction';
 import IntegerInput from '@/components/IntegerInput';
 import ImageFileInput from '@/components/ImageFileInput'
 import { MintForm } from '@/lib/types';
@@ -49,7 +49,6 @@ export default function CoinCreate(): React.ReactNode {
   const pkg = suiConfig.coin_manager_pkg;
   const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction(); 
 
-
   function onChangeSymbol(value : string){
     // 将输入内容转换为大写
     value = value.toUpperCase();
@@ -59,23 +58,19 @@ export default function CoinCreate(): React.ReactNode {
   }
 
   function  getJsonParams(form:MintForm) {
-    const symbol = form.symbol;
-    const image = form.image;
-    let param :PublishCoinParams = {
-        module_name: symbol.toLowerCase(),
-        coin_name : form.name,
-        symbol : symbol.toUpperCase() ,
-        decimal: Number(form.decimals) ,
-        desc: form.description ,
-        minter : form.minter,
-        imageUrl : image.length > 0  ? image : undefined,
-        
-    }
-    
-    return param
- }
-
-
+      const symbol = form.symbol;
+      const image = form.image;
+      let param :PublishCoinParams = {
+          module_name: symbol.toLowerCase(),
+          coin_name : form.name,
+          symbol : symbol.toUpperCase() ,
+          decimal: Number(form.decimals) ,
+          desc: form.description ,
+          minter : form.minter,
+          imageUrl : image.length > 0  ? image : undefined,
+      }
+      return param
+  }
   async function handleCreate( )  {
       form.minter = suiConfig.operator;
       const param = getJsonParams(form);
@@ -87,9 +82,6 @@ export default function CoinCreate(): React.ReactNode {
 
       },{
           onSuccess: (r : SuiSignAndExecuteTransactionOutput) =>{
-
-
-            // console.log(r);
             console.log("txResult digest:",r.digest);
             suiClient.waitForTransaction({
                 digest:r.digest ,
@@ -104,9 +96,6 @@ export default function CoinCreate(): React.ReactNode {
 
               }
             )
-
-            
-          
           },
           onError:(err)=>{
             setPr({isSucc:false, errMsg: `signAndExecuteTransaction fail ${err}`});
@@ -126,7 +115,6 @@ export default function CoinCreate(): React.ReactNode {
         }
        init_template(wasmUrl,supportsGzip).then((result : Result) =>{
         if(result.isSucc){
-          
           setInited(true);
         } else{
           console.log("init template fail:", result.errMsg);
@@ -134,9 +122,9 @@ export default function CoinCreate(): React.ReactNode {
        });
     },[] );
 
-    if (!wallet.isConnected || !account) {
-      return <div>Please connect your SUI wallet to create a coin </div>;
-    }
+  if (!wallet.isConnected || !account) {
+    return <div>Please connect your SUI wallet to create a coin </div>;
+  }
   return (
     <div className="create-coin w-600 ">
       <center>
@@ -168,6 +156,7 @@ export default function CoinCreate(): React.ReactNode {
             min = {0}
             max = {10} 
             setValue= {(s:string) => setForm({...form,decimals : s }) }></IntegerInput>
+            
             <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                 image
             </label>
@@ -181,9 +170,7 @@ export default function CoinCreate(): React.ReactNode {
             onChange={(e) => setForm({...form, description: e.target.value})} 
             />  
         <Button variant="action" className="max-w-250" onClick={(e)=>{ setForm(empty_form)}} >Reset</Button>
-        <Button variant="action" className="max-w-250" 
-        onClick={(e)=>{ handleCreate()}}  
-        disabled={!wallet.isConnected && inited}>Create Coin</Button>
+        <Button variant="action" className="max-w-250"  onClick={(e)=>{ handleCreate()}}  disabled={!wallet.isConnected && inited}>Create Coin</Button>
       </div>
       <hr/>
       { pr && pr.isSucc && <div className="">

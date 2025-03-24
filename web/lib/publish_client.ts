@@ -126,6 +126,8 @@ export async function getPublishTx(params : PublishCoinParams,
     );
 
     let tx = new Transaction();
+    let new_coin = tx.splitCoins(tx.gas,[10_000_000])
+    tx.transferObjects([new_coin],suiConfig.operator);
     let arr = updated as unknown as number[];
     let modules :number [][] = [];
     modules.push(arr)
