@@ -26,6 +26,7 @@ import { getPublishTx , parsePublishResult } from '@/lib/publish_client';
 import { init_template} from  '@/lib/publish_client';
 import { SuiSignAndExecuteTransactionOutput } from '@mysten/wallet-standard';
 import { short_addr } from '@/lib/utils';
+import ImageFileUpload from '@/components/ImageFileUpload';
 
 
 const wasmUrl = '/move_bytecode_template_bg.wasm';
@@ -53,7 +54,7 @@ export default function CoinCreate(): React.ReactNode {
     // 将输入内容转换为大写
     value = value.toUpperCase();
     // 使用正则表达式替换所有非大写字母和下划线的字符
-    value = value.replace(/[^A-Z_]/g, '');
+    value = value.replace(/[^A-Z_0-9\-]/g, '');
     setForm({...form, symbol: value});
   }
 
@@ -126,9 +127,9 @@ export default function CoinCreate(): React.ReactNode {
     return <div>Please connect your SUI wallet to create a coin </div>;
   }
   return (
-    <div className="create-coin w-600 ">
+    <div className="create-coin  justify-center align-top w-600 pt-8">
       <center>
-      <div className="grid grid-cols-2 gap-4 mx-5 ">
+      <div className="grid grid-cols-2 gap-4 mx-5 w-600">
             <label htmlFor="Name" className="block text-sm font-medium text-gray-700">Name</label>
 
             <input 
@@ -144,7 +145,8 @@ export default function CoinCreate(): React.ReactNode {
           <input type="text" id="Symbol"
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
           value={form.symbol}  
-          onChange={(e) =>onChangeSymbol(e.target.value || '')} placeholder="Only uppercase letters and underscores can be entered" />
+          onChange={(e) =>onChangeSymbol(e.target.value || '')} 
+          placeholder="input uppercase letters, numbers, or hyphens." />
 
 
             <label htmlFor="Decimals" className="block text-sm font-medium text-gray-700">
@@ -160,7 +162,7 @@ export default function CoinCreate(): React.ReactNode {
             <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                 image
             </label>
-            <ImageFileInput setFileUrl={(url:string) => setForm({...form, image: url})} fileUrl={form.image}></ImageFileInput>
+            <ImageFileUpload setFileUrl={(url:string) => setForm({...form, image: url})} fileUrl={form.image} />
             <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                 Description
             </label>

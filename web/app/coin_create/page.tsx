@@ -47,7 +47,7 @@ export default function CoinCreate(): React.ReactNode {
   }
   
   async function preCreate(  cb: ()=>Promise<void>) : Promise<Result> {
-    const tx = getPrecreateTx(suiConfig.operator);
+    const tx : Transaction  = getPrecreateTx(suiConfig.operator);
     let ret : Result = {isSucc:true};
     await signAndExecuteTransaction({transaction:tx},{
       onSuccess:() =>{

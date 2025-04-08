@@ -2,7 +2,7 @@
 
 [move]
 version = 3
-manifest_digest = "20B7A4115E5057063D226FCCF11572F5D84181F42F64FCF5DFD4C87AD2E45F95"
+manifest_digest = "043FA43E7DE2D22AC966FCC7105728E24356367D8E82BAC937E5354C6014FED6"
 deps_digest = "3C4103934B1E040BB6B23F1D610B4EF9F2F1166A50A104EADCF77467C004C600"
 dependencies = [
   { id = "Sui", name = "Sui" },
@@ -28,8 +28,3 @@ source = { local = "../coin_manager" }
 dependencies = [
   { id = "Sui", name = "Sui" },
 ]
-
-[move.toolchain-version]
-compiler-version = "1.44.3"
-edition = "2024.beta"
-flavor = "sui"

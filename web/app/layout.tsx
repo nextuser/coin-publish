@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { inter } from "./fonts";
 import { Providers } from "./providers";
 import ConnectBar from '@/components/ConnectBar'
 import "./globals.css";
@@ -15,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} antialiased`}>
+      <body className={`antialiased`}>
 
         <Providers>
           <ConnectBar></ConnectBar>

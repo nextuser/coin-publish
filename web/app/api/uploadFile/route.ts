@@ -2,19 +2,54 @@ import axios from 'axios';
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-async function POST(request: Request) {
+import suiConfig from '@/lib/suiConfig.json'
+
+async function downloadImage(imageUrl: string): Promise<Buffer> {
+  console.log("downloadImage:",imageUrl);
+  const response = await axios.get(imageUrl, { responseType: 'arraybuffer' });
+  return Buffer.from(response.data, 'binary');
+}
+export async function POST(request: Request) {
     console.log("upload/route.ts :post");
+    
     try {
+      const protocol = request.headers.get('x-forwarded-proto') || 'http';
+      const host = request.headers.get('host') || '';
+      const site_url = `${protocol}://${host}`;
       const formData = await request.formData();
-      const file = formData.get('file') as File;
+      const fileOrUrl : File|string|null = formData.get('file') ;
+
+      if (!fileOrUrl) {
+        return NextResponse.json({ message: 'Invalid arg of file' }, { status: 400 });
+      }
+      let suffix :string|undefined;
+      let buffer : Buffer;
+      if (typeof fileOrUrl === 'string') {
+          // const response = await fetch(finalConfig.proxyUrl, {
+          //     method: 'POST',
+          //     headers: { 'Content-Type': 'application/json' },
+          //     body: JSON.stringify({ url: fileOrUrl }),
+          // });
+          // if (!response.ok) {
+          //     throw new Error(`HTTP error! status: ${response.status}`);
+          // }
+          // body = await response.blob();
+          console.log("download url:",fileOrUrl);
+          buffer = (await downloadImage(fileOrUrl));
+          suffix = fileOrUrl.split('.').pop();
+      } else {
+          buffer = Buffer.from(await fileOrUrl.arrayBuffer());
+          suffix = fileOrUrl.name.split('.').pop();
+      }
   
-      if (!file) {
+      if (!buffer) {
         return NextResponse.json({ message: '未找到文件' }, { status: 400 });
       }
   
-      // 将文件转换为 Buffer
-      const buffer = Buffer.from(await file.arrayBuffer());
-  
+      if(!suffix){
+        suffix = "png";
+      }
+
       // 保存文件到本地（示例路径：public/uploads）
       const uploadDir = path.join(process.cwd(), 'public', 'uploads');
       if (!fs.existsSync(uploadDir)) {
@@ -23,12 +58,14 @@ async function POST(request: Request) {
   
       console.log("uploadDir:", uploadDir);
   
-      const fileName = `image-${Date.now()}.${file.name.split('.').pop()}`; // 生成唯一文件名
+      const fileName = `image-${Date.now()}.${suffix}`; // 生成唯一文件名
       const filePath = path.join(uploadDir, fileName);
       fs.writeFileSync(filePath, buffer);
-  
+
+       
       // 返回文件 URL
-      const fileUrl = `/uploads/${fileName}`;
+      const fileUrl = `${site_url}/uploads/${fileName}`;
+      console.log('upload success');
       return NextResponse.json({ url: fileUrl }, { status: 200 });
     } catch (error) {
       console.error('上传失败:', error);

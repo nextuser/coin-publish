@@ -43,9 +43,8 @@ export default function CoinList(): React.ReactNode {
 
   
   return (
-    <div className="coin-list">
+    <div className="pt-8">
 
-      <h1>SUI Coins</h1>
       <div style={{display:"flex",flexWrap:"wrap", alignItems:"flex-start", justifyContent:"flex-start"}}>
         {
             vaults.map(vault  => {

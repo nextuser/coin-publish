@@ -231,7 +231,7 @@ export default function CoinDetail(): React.ReactNode  {
                 <Button variant='percent' disabled={!account || buyAmount<=0} onClick={() => changeBuyPercent(25)}>25%</Button>
                 <Button variant='percent' disabled={!account || buyAmount<=0} onClick={() => changeBuyPercent(50 )}>50%</Button>
                 <Button variant='percent' disabled={!account || buyAmount<=0} onClick={() => changeBuyPercent(75 )}>75%</Button>
-                <Button variant='percent' disabled={!account || buyAmount<=0} onClick={() => changeBuyPercent(  100)}>100%</Button>
+                <Button variant='percent' disabled={!account || buyAmount<=0} onClick={() => changeBuyPercent( 100)}>100%</Button>
               </div>
               <div><label className='text-xs'>Token : {buyToken} </label></div>
               <Button variant='action' disabled={!account || buyAmount<=0} onClick={ (e)=>{Buy()} } > Buy </Button>

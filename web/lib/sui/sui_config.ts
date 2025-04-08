@@ -5,6 +5,7 @@ export type SuiConfig = {
     coin_manager_pkg: string,
     coin_manager:string,
     operator : string,
+    site : string
 }
 
 function getValidEnv(name :string){
@@ -18,12 +19,13 @@ function getValidEnv(name :string){
 export  function getSuiConfig()  : SuiConfig{
     const coin_manager_pkg =  getValidEnv('COIN_MANAGER_PACKAGE');
     const operator = getValidEnv('OPERATOR');
-
     const coin_manager = getValidEnv('COIN_MANAGER')
+    const site = process.env['SITE'] || 'https://coinspub.vercel.app';
 
     return {
         coin_manager_pkg,
 	    coin_manager,
         operator,
+        site,
     }   
 }

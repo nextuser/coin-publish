@@ -38,17 +38,18 @@ export function get_buy_amount(s0 :number, sui_amount:number, decimals =6) :[num
     let b = 2*K*s0 + C;
     let a = K;
     let c = -sui_amount;
+    let d = b**2  - 4*a*c
+    let u = Math.sqrt( d ) - b;
 
-    let u = Math.sqrt( b**2  - 4*a*c) - b;
     let delta  = u/(2*K);
     //保留6位小数
     delta = Math.floor(delta * decimal_value)/decimal_value;
 
     let  s1 = s0 + delta;
-    let tv1 = K * s1 * s1 + C * s1;
-    let tv0 = K * s0 * s0 + C * s0;
+    // let tv1 = K * s1 * s1 + C * s1;
+    // let tv0 = K * s0 * s0 + C * s0;
    
-    let diff = tv1 -  tv0
+    // let diff = tv1 -  tv0
 
     return [delta,s1];
 }
