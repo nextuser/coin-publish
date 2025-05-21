@@ -90,10 +90,12 @@ export default function CoinCreate(): React.ReactNode {
               }).then(
               (result)=>{
                 const pr = parsePublishResult(result);
+                
+                setForm(empty_form)
                 setPr(pr);
-                if(pr.vault_id){
-                  redirect(`coin_detail/${pr.vault_id}?digest=${r.digest}`)
-                }
+                // if(pr.vault_id){
+                //   redirect(`coin_detail/${pr.vault_id}?digest=${r.digest}`)
+                // }
 
               }
             )

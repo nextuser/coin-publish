@@ -8,34 +8,63 @@ export default function ImageFileUpload(props:{fileUrl:string, setFileUrl: (url 
   const [inputType, setInputType] = useState('file');
   const [file, setFile] = useState(null);
   const [imageUrl, setImageUrl] = useState('');
-  const [preview, setPreview] = useState('');
+  ///const [preview, setPreview] = useState('');
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   ///const [fileUrl ,setLogUrl] = useState('');
   const [isOpen,setIsOpen] = useState(false)
+  const [imageDataUrl, setImageDataUrl] = useState('');
+
+  const handlePreviewUrl = async (url:string) => {
+    try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setImageDataUrl(reader.result as string);
+        };
+        reader.readAsDataURL(blob);
+    } catch (error) {
+        console.error('Error fetching image:', error);
+    }
+};
+
+
+
 
   const handleInputTypeChange = (type:'file'|'url') => {
     setInputType(type);
     setFile(null);
     setImageUrl('');
-    setPreview('');
+    //setPreview('');
   };
 
   const handleFileChange = (event:any) => {
     const selectedFile = event.target.files[0];
     if (selectedFile) {
       setFile(selectedFile);
-      setPreview(URL.createObjectURL(selectedFile));
+      //setPreview(URL.createObjectURL(selectedFile));
     }
   };
 
   const handleUrlChange = (event:any) => {
     const url = event.target.value;
+    
     setImageUrl(url);
-    setPreview(url);
+    handlePreviewUrl(url);
+    //setPreview(url);
   };
 
-  async function uploadFile(file :File|string) :Promise<string | null>{
+  async function getBuffer(imageUrl:string) {
+    console.log("get buffer");
+    const response = await fetch(imageUrl);
+    const arrayBuffer = await response.arrayBuffer();
+    // 将 ArrayBuffer 转换为 Uint8Array
+    const uint8Array = new Uint8Array(arrayBuffer);
+    return uint8Array;
+  }
+
+  async function uploadFile(type:'file'|'buffer',file :File|string) :Promise<string | null>{
     try {
         setUploading(true);
         const formData = new FormData();
@@ -64,16 +93,7 @@ export default function ImageFileUpload(props:{fileUrl:string, setFileUrl: (url 
       return null;
   }
 
-  const handleSaveUrl = ()=>{
-    console.log('handle image url:', imageUrl);
-    let url = imageUrl;
-    props.setFileUrl(url);
-    if(url){
-      setFile(null);
-      setImageUrl('');
-      setIsOpen(false)
-    }
-  }
+
 
   const handleSubmit = async () => {
     let arg : File | string;
@@ -81,12 +101,13 @@ export default function ImageFileUpload(props:{fileUrl:string, setFileUrl: (url 
     if (inputType === 'file' && file) {
       console.log('upload file name:', file);
       arg = file;
-      url = (await uploadFile(arg) ) || '';
+      url = (await uploadFile('file',arg) ) || '';
       
     } else if (inputType === 'url' && imageUrl) {
       console.log('handle image url:', imageUrl);
       arg = imageUrl;
-      url = (await uploadFile(arg) ) || '';
+      let buffer = await getBuffer(imageUrl)
+      url = (await uploadFile('buffer',arg) ) || '';
     } else {
       alert('sect a local Image or input a image url');
       return;
@@ -101,13 +122,23 @@ export default function ImageFileUpload(props:{fileUrl:string, setFileUrl: (url 
 
   };
 
+  function saveUrl(){
+    props.setFileUrl(imageUrl)
+    setFile(null);
+    setImageUrl('');
+    setIsOpen(false)
+
+  }
+
   return (
-    <div className='wx-800'>
-    <input type="text" disabled={true} value={props.fileUrl}  className='w-full' /> 
+    <div >
+    <input type="text" disabled={false} placeholder='input image url' value={props.fileUrl} onChange={(e)=>props.setFileUrl(e.target.value)}  
+    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+     /> 
     { error && <p>{error}</p>}
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
     <DialogTrigger onClick={() => setIsOpen(true)}>
-    <div><p className="bg-primary/80 text-primary-foreground hover:bg-primary/60 border border-input px-4 py-2 rounded-2xl w-full">
+    <div><p className="bg-primary/80 text-primary-foreground hover:bg-primary/60 border border-input px-4 py-2 rounded-2xl max-w-800 ">
     Upload Image
     </p></div>
     </DialogTrigger>
@@ -143,7 +174,7 @@ export default function ImageFileUpload(props:{fileUrl:string, setFileUrl: (url 
 
       {inputType === 'file' && (
         <div className="mb-6">
-          <input type="file" accept="image/*" onChange={handleFileChange} className="w-full" />
+          <input type="file" accept="image/*" onChange={handleFileChange} className="overflow-auto" />
         </div>
       )}
 
@@ -159,17 +190,22 @@ export default function ImageFileUpload(props:{fileUrl:string, setFileUrl: (url 
         </div>
       )}
 
-      {preview && (
+      {imageDataUrl && (
         <div className="mb-6">
-          <img src={preview} alt="Preview" className="w-full rounded-lg wx-400 wh-400 overflow-auto" />
+          <img src={imageDataUrl} alt="Preview" className="w-full rounded-lg wx-400 wh-400 overflow-auto" />
         </div>
       )}
-
+      <div className='gird grid-cols-2 gap-4'>
       <Button
         onClick={handleSubmit}
+        className='mx-4'
       >
          {uploading ? 'Uploading...' : 'Upload'}
-      </Button>{inputType === 'url' && <Button onClick={handleSaveUrl}>Save</Button>}
+      </Button>
+      <Button onClick={saveUrl} disabled={inputType != 'url' || !imageUrl }
+      className='mx-4'
+      >Save Url</Button>
+      </div>
         <DialogClose />
       </DialogContent>
     </Dialog>

@@ -10,7 +10,7 @@ import { publishCoin } from '@/lib/publishCoin';
 import CopyButton from '@/components/CopyButton';
 import ViewTransaction from '@/components/CopyViewTransaction';
 import IntegerInput from '@/components/IntegerInput';
-import ImageFileInput from '@/components/ImageFileInput'
+import ImageFileUpload from '@/components/ImageFileUpload'
 import { MintForm } from '@/lib/types';
 import { PublishedBody,PublishResult} from '@/lib/types';
 import  Link  from 'next/link';
@@ -140,7 +140,7 @@ export default function CoinCreate(): React.ReactNode {
             <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                 image
             </label>
-            <ImageFileInput setFileUrl={(url:string) => setForm({...form, image: url})} fileUrl={form.image}></ImageFileInput>
+            <ImageFileUpload setFileUrl={(url:string) => setForm({...form, image: url})} fileUrl={form.image}></ImageFileUpload>
             <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                 Description
             </label>

@@ -86,9 +86,17 @@ export default function ImageFileInput(props:{fileUrl:string, setFileUrl: (url :
 
   };
 
+  function saveUrl(){
+    props.setFileUrl(imageUrl)
+    setFile(null);
+    setImageUrl('');
+    setIsOpen(false)
+
+  }
+
   return (
     <div >
-    <input type="text" disabled={true} value={props.fileUrl}  className='w-full' /> 
+    <input type="text" disabled={false} value={props.fileUrl}  className='w-full' /> 
     { error && <p>{error}</p>}
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
     <DialogTrigger onClick={() => setIsOpen(true)}>
@@ -155,6 +163,7 @@ export default function ImageFileInput(props:{fileUrl:string, setFileUrl: (url :
       >
          {uploading ? 'Uploading...' : 'Upload'}
       </Button>
+      {inputType === 'url' && imageUrl && <Button onClick={saveUrl}>Save Url</Button>}
         <DialogClose />
       </DialogContent>
     </Dialog>
